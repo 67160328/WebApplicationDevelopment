@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: automatic_macro_api
+    ports:
+      - "8090:8000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
