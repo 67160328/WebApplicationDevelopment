@@ -22,10 +22,11 @@ class ScriptRunnerEngine:
             if step.action_type == ActionType.MOUSE_CLICK:
                 try:
                     import pyautogui
+                    pyautogui.FAILSAFE = False
                     pyautogui.click(step.x, step.y)
                     logs.append(f"Step {idx}: [MOUSE_CLICK] Executed real mouse click at X:{step.x}, Y:{step.y}")
                 except Exception as e:
-                    logs.append(f"Step {idx}: [MOUSE_CLICK] Simulated click at coordinate X:{step.x}, Y:{step.y} (Sandbox Mode)")
+                    logs.append(f"Step {idx}: [MOUSE_CLICK] Simulated click at coordinate X:{step.x}, Y:{step.y} (Reason: {str(e)})")
             elif step.action_type == ActionType.KEY_BINDING:
                 try:
                     import pyautogui
