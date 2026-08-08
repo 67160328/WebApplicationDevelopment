@@ -141,8 +141,20 @@ function setupScreenShareInspector() {
     const realX = Math.round((e.clientX - rect.left) * scaleX);
     const realY = Math.round((e.clientY - rect.top) * scaleY);
 
-    alert(`✅ Captured Real Desktop Position:\nX: ${realX}, Y: ${realY}\n\nAdded click step to workspace!`);
-    addStep({ action_type: 'mouse_click', x: realX, y: realY });
+    if (window.editingStepIndex !== undefined && window.editingStepIndex !== null) {
+      const idx = window.editingStepIndex;
+      window.editingStepIndex = null;
+      if (steps[idx]) {
+        steps[idx].x = realX;
+        steps[idx].y = realY;
+        alert(`✅ Updated Step ${idx + 1} Position:\nX: ${realX}, Y: ${realY}`);
+        renderBlockChain();
+        triggerLivePreview();
+      }
+    } else {
+      alert(`✅ Captured Real Desktop Position:\nX: ${realX}, Y: ${realY}\n\nAdded click step to workspace!`);
+      addStep({ action_type: 'mouse_click', x: realX, y: realY });
+    }
     stopInspector();
   });
 }
@@ -159,6 +171,45 @@ function removeStep(idx) {
   triggerLivePreview();
 }
 
+function editStep(idx) {
+  const s = steps[idx];
+  if (!s) return;
+
+  if (s.action_type === 'mouse_click') {
+    const choice = confirm(`Edit Step ${idx + 1} (Mouse Click X: ${s.x}, Y: ${s.y}):\n\nClick 'OK' to pick position on screen visually.\nClick 'Cancel' to type numbers manually.`);
+    if (choice) {
+      if (window.triggerScreenInspectorPicker) {
+        // Temporarily override inspector click handler to update this specific step index
+        window.editingStepIndex = idx;
+        window.triggerScreenInspectorPicker();
+      }
+    } else {
+      const newX = prompt('Enter new Mouse X Coordinate (px):', s.x.toString());
+      const newY = prompt('Enter new Mouse Y Coordinate (px):', s.y.toString());
+      if (newX !== null && newY !== null) {
+        s.x = parseInt(newX) || 0;
+        s.y = parseInt(newY) || 0;
+        renderBlockChain();
+        triggerLivePreview();
+      }
+    }
+  } else if (s.action_type === 'key_binding') {
+    const newKey = prompt('Enter new Key / Shortcut:', s.key);
+    if (newKey) {
+      s.key = newKey.trim();
+      renderBlockChain();
+      triggerLivePreview();
+    }
+  } else if (s.action_type === 'delay') {
+    const newMs = prompt('Enter new Wait Duration (Milliseconds):', s.duration_ms.toString());
+    if (newMs) {
+      s.duration_ms = parseInt(newMs) || 1000;
+      renderBlockChain();
+      triggerLivePreview();
+    }
+  }
+}
+
 function renderBlockChain() {
   chainStepCount.textContent = `${steps.length} Steps`;
   if (steps.length === 0) {
@@ -166,7 +217,7 @@ function renderBlockChain() {
       <div class="empty-canvas-prompt">
         <span class="prompt-icon">🧩</span>
         <p>Your workspace is empty.</p>
-        <small>Click blocks above or use "Track Real Desktop X,Y" to capture coordinates!</small>
+        <small>Click blocks above to add steps and capture coordinates!</small>
       </div>`;
     return;
   }
@@ -183,7 +234,10 @@ function renderBlockChain() {
 
     div.innerHTML = `
       <span>Step ${idx + 1}: ${label}</span>
-      <button class="btn-text" style="color:#fff;" onclick="removeStep(${idx})">✕</button>
+      <div class="chain-block-actions">
+        <button class="btn-icon-step" title="Edit Step" onclick="editStep(${idx})">✏️ Edit</button>
+        <button class="btn-icon-step danger" title="Delete Step" onclick="removeStep(${idx})">✕</button>
+      </div>
     `;
     blockChainList.appendChild(div);
   });

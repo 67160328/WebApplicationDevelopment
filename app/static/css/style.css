@@ -98,6 +98,14 @@ body {
 .chain-block.type-key { border-left-color: #8957e5; }
 .chain-block.type-delay { border-left-color: #d29922; }
 
+.chain-block-actions { display: flex; gap: 0.4rem; align-items: center; }
+.btn-icon-step {
+  background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: #fff;
+  font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: var(--transition);
+}
+.btn-icon-step:hover { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+.btn-icon-step.danger:hover { background: rgba(248, 81, 73, 0.2); color: var(--accent-red); }
+
 /* Tracker Badges & Animations */
 .mouse-tracker-badge {
   font-size: 0.75rem; font-weight: 700; background: rgba(88, 166, 255, 0.2); color: var(--accent-blue);
