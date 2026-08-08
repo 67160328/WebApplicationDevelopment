@@ -137,11 +137,16 @@
       <!-- TAB 1: INTERACTIVE SCREEN SIMULATOR -->
       <div id="tab-screen" class="sim-tab-content active">
         <div class="sim-header">
-          <span class="sim-status-badge">Target Screen Simulation (Click anywhere to add Click Step!)</span>
+          <span class="sim-status-badge">Target Screen Simulation</span>
+          <span id="live-mouse-pos" class="mouse-tracker-badge">📍 Mouse: X: 0, Y: 0</span>
         </div>
 
         <!-- Virtual Interactive Screen Canvas -->
         <div id="virtual-screen" class="virtual-screen">
+          
+          <!-- Floating Mouse HUD Badge following cursor -->
+          <div id="mouse-hud" class="mouse-hud-tooltip hidden">X: 0, Y: 0</div>
+
           <div class="virtual-app-window">
             <div class="app-window-header">
               <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>

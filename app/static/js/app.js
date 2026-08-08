@@ -66,8 +66,28 @@ function setupPaletteClickHandlers() {
   });
 }
 
-// Interactive Screen Simulator Click Capture
+// Interactive Screen Simulator Click Capture & Live Mouse Tracking
 function setupVirtualScreenClickCapture() {
+  const mouseHud = document.getElementById('mouse-hud');
+  const liveMousePos = document.getElementById('live-mouse-pos');
+
+  virtualScreen.addEventListener('mousemove', (e) => {
+    const rect = virtualScreen.getBoundingClientRect();
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+
+    // Update real-time HUD tooltip and top status badge
+    mouseHud.classList.remove('hidden');
+    mouseHud.style.left = `${x}px`;
+    mouseHud.style.top = `${y}px`;
+    mouseHud.textContent = `X: ${x}, Y: ${y}`;
+    liveMousePos.textContent = `📍 Mouse: X: ${x}, Y: ${y}`;
+  });
+
+  virtualScreen.addEventListener('mouseleave', () => {
+    mouseHud.classList.add('hidden');
+  });
+
   virtualScreen.addEventListener('click', (e) => {
     if (isSimulating) return;
     const rect = virtualScreen.getBoundingClientRect();

@@ -127,6 +127,18 @@ body {
   position: absolute; font-size: 1.5rem; pointer-events: none; transition: all 0.4s ease-in-out; z-index: 10; transform: translate(-50%, -50%);
 }
 
+.mouse-tracker-badge {
+  font-size: 0.75rem; font-weight: 700; background: rgba(88, 166, 255, 0.2); color: var(--accent-blue);
+  padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(88, 166, 255, 0.3); font-family: 'Fira Code', monospace;
+}
+
+.mouse-hud-tooltip {
+  position: absolute; background: rgba(9, 13, 19, 0.9); border: 1px solid var(--accent-blue);
+  color: #79c0ff; font-family: 'Fira Code', monospace; font-size: 0.75rem; font-weight: 700;
+  padding: 3px 8px; border-radius: 6px; pointer-events: none; z-index: 100;
+  transform: translate(12px, 12px); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
 /* Code & Console Box */
 .code-header-bar, .export-download-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
 pre { flex: 1; background: #080b10; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #79c0ff; overflow: auto; }
