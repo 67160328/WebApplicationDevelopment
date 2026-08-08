@@ -19,7 +19,7 @@ const liveMousePos = document.getElementById('live-mouse-pos');
 
 document.addEventListener('DOMContentLoaded', () => {
   setupPaletteClickHandlers();
-  setupOsMouseTrackingToggle();
+  setupScreenShareInspector();
   setupSimTabs();
   setupWebExecution();
   setupAuthModalHandlers();
@@ -69,56 +69,82 @@ function setupPaletteClickHandlers() {
   });
 }
 
-// OS Desktop Mouse Tracking Toggle (Start / Stop Switch)
-function setupOsMouseTrackingToggle() {
-  const btnFetchOsMouse = document.getElementById('btn-fetch-os-mouse');
-  if (btnFetchOsMouse) {
-    btnFetchOsMouse.addEventListener('click', async () => {
-      if (!isTrackingOsMouse) {
-        // Start Continuous Tracking
-        isTrackingOsMouse = true;
-        btnFetchOsMouse.classList.add('btn-tracking-active');
-        btnFetchOsMouse.innerHTML = '🔴 Tracking Mouse (Click to Stop & Capture)';
+// HTML5 Screen Capture API (getDisplayMedia) Direct Full Desktop Inspector
+function setupScreenShareInspector() {
+  const btnStartShare = document.getElementById('btn-start-screen-share');
+  const modal = document.getElementById('desktop-stream-modal');
+  const btnClose = document.getElementById('btn-close-stream');
+  const video = document.getElementById('screen-video-stream');
+  const canvas = document.getElementById('screen-canvas-inspector');
+  const streamCoordsBadge = document.getElementById('stream-coords-badge');
+  const ctx = canvas.getContext('2d');
+  let mediaStream = null;
+  let animId = null;
 
-        // 1. Browser Native Real Mouse Tracker (Accurate pixel coordinates)
-        windowMouseMoveHandler = (e) => {
-          lastCapturedX = e.screenX || e.clientX;
-          lastCapturedY = e.screenY || e.clientY;
-          if (liveMousePos) {
-            liveMousePos.textContent = `📍 Mouse: X: ${lastCapturedX}, Y: ${lastCapturedY}`;
-          }
-        };
-        window.addEventListener('mousemove', windowMouseMoveHandler);
-        
-        // 2. Fallback OS backend polling
-        trackingInterval = setInterval(async () => {
-          try {
-            const res = await fetch('/api/v1/vision/desktop-mouse-position');
-            const data = await res.json();
-            if (data.status === "success" && liveMousePos) {
-              lastCapturedX = data.x;
-              lastCapturedY = data.y;
-              liveMousePos.textContent = `📍 OS Mouse: X: ${data.x}, Y: ${data.y}`;
-            }
-          } catch (e) {}
-        }, 150);
+  btnStartShare.addEventListener('click', async () => {
+    try {
+      mediaStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: "always" },
+        audio: false
+      });
 
-      } else {
-        // Stop Continuous Tracking & Add Step
-        isTrackingOsMouse = false;
-        if (trackingInterval) clearInterval(trackingInterval);
-        if (windowMouseMoveHandler) window.removeEventListener('mousemove', windowMouseMoveHandler);
-        trackingInterval = null;
-        windowMouseMoveHandler = null;
+      video.srcObject = mediaStream;
+      modal.classList.remove('hidden');
 
-        btnFetchOsMouse.classList.remove('btn-tracking-active');
-        btnFetchOsMouse.innerHTML = '🖥️ Track Real Desktop X,Y';
+      video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-        alert(`✅ Captured Mouse Position:\nX: ${lastCapturedX}, Y: ${lastCapturedY}\n\nAdded click step to workspace!`);
-        addStep({ action_type: 'mouse_click', x: lastCapturedX, y: lastCapturedY });
-      }
-    });
+        function drawFrame() {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          animId = requestAnimationFrame(drawFrame);
+        }
+        drawFrame();
+      };
+
+      mediaStream.getVideoTracks()[0].addEventListener('ended', stopInspector);
+
+    } catch (err) {
+      alert('Screen sharing cancelled or permission denied.');
+    }
+  });
+
+  function stopInspector() {
+    if (animId) cancelAnimationFrame(animId);
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+    }
+    modal.classList.add('hidden');
   }
+
+  btnClose.addEventListener('click', stopInspector);
+
+  // Read exact real desktop screen coordinates on mousemove & click
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const realX = Math.round((e.clientX - rect.left) * scaleX);
+    const realY = Math.round((e.clientY - rect.top) * scaleY);
+
+    streamCoordsBadge.textContent = `📍 Desktop Pos: X: ${realX}, Y: ${realY}`;
+    liveMousePos.textContent = `📍 Desktop: X: ${realX}, Y: ${realY}`;
+  });
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const realX = Math.round((e.clientX - rect.left) * scaleX);
+    const realY = Math.round((e.clientY - rect.top) * scaleY);
+
+    alert(`✅ Captured Real Desktop Position:\nX: ${realX}, Y: ${realY}\n\nAdded click step to workspace!`);
+    addStep({ action_type: 'mouse_click', x: realX, y: realY });
+    stopInspector();
+  });
 }
 
 function addStep(stepObj) {

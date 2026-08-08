@@ -24,8 +24,7 @@
 
     <!-- OS Desktop Mouse Tracker Header Bar -->
     <div class="header-tracker-bar">
-      <button id="btn-fetch-os-mouse" class="btn btn-secondary">🖥️ Track Mouse (In Web)</button>
-      <a href="/static/desktop_tracker.py" download="desktop_tracker.py" class="btn btn-accent btn-sm">📥 Download Desktop Assistant (.py)</a>
+      <button id="btn-start-screen-share" class="btn btn-accent">📺 Inspect Full Desktop Screen (Direct)</button>
       <span id="live-mouse-pos" class="mouse-tracker-badge">📍 Mouse: X: 0, Y: 0</span>
     </div>
 
@@ -179,6 +178,21 @@
     </div>
   </div>
 
-  <script src="/static/js/app.js?v=4.0"></script>
+  <!-- Full Desktop Screen Stream Inspector Modal -->
+  <div id="desktop-stream-modal" class="modal-backdrop hidden">
+    <div class="desktop-stream-card">
+      <div class="stream-header-bar">
+        <h3>📺 Direct Real OS Desktop Inspector (Hover & Click Anywhere!)</h3>
+        <span id="stream-coords-badge" class="mouse-tracker-badge" style="font-size: 1rem;">📍 Desktop Pos: X: 0, Y: 0</span>
+        <button id="btn-close-stream" class="btn btn-outline-danger btn-sm">✕ Close Inspector</button>
+      </div>
+      <div class="stream-video-container" id="stream-container">
+        <video id="screen-video-stream" autoplay playsinline style="display:none;"></video>
+        <canvas id="screen-canvas-inspector"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js?v=5.0"></script>
 </body>
 </html>

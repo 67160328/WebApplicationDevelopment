@@ -143,10 +143,19 @@ input[type="text"], input[type="password"], input[type="email"], select {
 }
 
 /* Modal */
-.modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 .modal-card { background: #161b22; border: 1px solid var(--border-color); border-radius: 14px; padding: 1.8rem; width: 100%; max-width: 380px; position: relative; }
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
 .modal-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+
+.desktop-stream-card {
+  background: #0d1117; border: 1px solid var(--accent-blue); border-radius: 16px;
+  padding: 1.25rem; width: 92vw; height: 90vh; display: flex; flex-direction: column; gap: 1rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+.stream-header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; }
+.stream-video-container { flex: 1; position: relative; overflow: hidden; background: #000; border-radius: 10px; display: flex; justify-content: center; align-items: center; cursor: crosshair; }
+#screen-canvas-inspector { width: 100%; height: 100%; object-fit: contain; }
 
 .hidden { display: none !important; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
