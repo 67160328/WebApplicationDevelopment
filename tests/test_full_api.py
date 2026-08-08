@@ -1,14 +1,17 @@
 import unittest
+import uuid
 from fastapi.testclient import TestClient
 from main import app
 
 class TestFullAPI(unittest.TestCase):
 
-    def setUp(self):
-        self.client = TestClient(app)
-        self.test_username = "testuser"
-        self.test_email = "test@example.com"
-        self.test_password = "password123"
+    @classmethod
+    def setUpClass(cls):
+        cls.client = TestClient(app)
+        unique_id = uuid.uuid4().hex[:6]
+        cls.test_username = f"user_{unique_id}"
+        cls.test_email = f"{cls.test_username}@example.com"
+        cls.test_password = "password123"
 
     def test_01_check_username_available(self):
         response = self.client.get(f"/api/v1/users/check-username/{self.test_username}")
@@ -24,7 +27,7 @@ class TestFullAPI(unittest.TestCase):
             "full_name": "Test User"
         }
         response = self.client.post("/api/v1/auth/register", json=payload)
-        self.assertIn(response.status_code, [201, 400])  # 201 or 400 if already exists
+        self.assertEqual(response.status_code, 201)
 
     def test_03_login_user(self):
         payload = {
@@ -37,7 +40,6 @@ class TestFullAPI(unittest.TestCase):
         self.assertIn("access_token", data)
         token = data["access_token"]
 
-        # Test GET /me
         headers = {"Authorization": f"Bearer {token}"}
         me_resp = self.client.get("/api/v1/users/me", headers=headers)
         self.assertEqual(me_resp.status_code, 200)

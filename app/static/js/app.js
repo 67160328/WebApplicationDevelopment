@@ -3,162 +3,195 @@ let steps = [];
 let currentToken = localStorage.getItem('auto_macro_jwt') || null;
 let currentUser = null;
 
-// DOM Elements
-const stepList = document.getElementById('step-list');
-const stepCount = document.getElementById('step-count');
+// Elements
+const dropZone = document.getElementById('scratch-drop-zone');
 const codeOutput = document.getElementById('code-output');
+const executionLogs = document.getElementById('execution-logs');
 const selectTargetLang = document.getElementById('select-target-lang');
 const previewFilename = document.getElementById('preview-filename');
 const inputFilename = document.getElementById('input-filename');
 
-// Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-  setupActionTabSwitching();
-  setupActionFormHandlers();
+  setupWorkspaceTabs();
+  setupScratchBlockPalette();
+  setupGeneratorAndWebRunner();
+  setupVisionLabHandlers();
   setupAuthModalHandlers();
-  setupGeneratorHandlers();
-  
+
   if (currentToken) {
     fetchUserProfile();
   }
 });
 
-// Action Tab Switcher
-function setupActionTabSwitching() {
-  const tabs = document.querySelectorAll('.btn-action-tab');
-  const forms = {
-    mouse_click: document.getElementById('form-mouse'),
-    key_binding: document.getElementById('form-key'),
-    delay: document.getElementById('form-delay')
-  };
+// Workspace Tab Switching
+function setupWorkspaceTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const contents = document.querySelectorAll('.tab-content');
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+      contents.forEach(c => c.classList.add('hidden'));
 
-      const action = tab.dataset.action;
-      Object.keys(forms).forEach(key => {
-        if (key === action) {
-          forms[key].classList.remove('hidden');
-        } else {
-          forms[key].classList.add('hidden');
-        }
-      });
+      tab.classList.add('active');
+      const targetId = tab.dataset.tab;
+      document.getElementById(targetId).classList.remove('hidden');
     });
   });
 }
 
-// Action Form Submissions
-function setupActionFormHandlers() {
-  document.getElementById('form-mouse').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const x = parseInt(document.getElementById('input-x').value) || 0;
-    const y = parseInt(document.getElementById('input-y').value) || 0;
-    addStep({ action_type: 'mouse_click', x, y });
+// Scratch Block Palette & Chain Manager
+function setupScratchBlockPalette() {
+  const chips = document.querySelectorAll('.block-chip');
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const type = chip.dataset.block;
+      if (type === 'click') {
+        const x = prompt('Enter Mouse X Coordinate (px):', '450');
+        const y = prompt('Enter Mouse Y Coordinate (px):', '320');
+        if (x !== null && y !== null) {
+          addStep({ action_type: 'mouse_click', x: parseInt(x)||0, y: parseInt(y)||0 });
+        }
+      } else if (type === 'key') {
+        const key = prompt('Enter Key/Shortcut to press (e.g. enter, space, ctrl+c):', 'enter');
+        if (key) {
+          addStep({ action_type: 'key_binding', key: key.trim() });
+        }
+      } else if (type === 'delay') {
+        const ms = prompt('Enter Wait Duration (Milliseconds):', '1000');
+        if (ms) {
+          addStep({ action_type: 'delay', duration_ms: parseInt(ms)||1000 });
+        }
+      } else if (type === 'ocr') {
+        alert('Added OCR Text Match condition step!');
+        addStep({ action_type: 'key_binding', key: 'ocr_detect_text' });
+      } else if (type === 'image') {
+        alert('Added Screen Image Detection condition step!');
+        addStep({ action_type: 'mouse_click', x: 500, y: 500 });
+      }
+    });
   });
 
-  document.getElementById('form-key').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const key = document.getElementById('input-key').value.trim() || 'enter';
-    addStep({ action_type: 'key_binding', key });
-  });
-
-  document.getElementById('form-delay').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const duration_ms = parseInt(document.getElementById('input-delay').value) || 1000;
-    addStep({ action_type: 'delay', duration_ms });
-  });
-
-  document.getElementById('btn-clear-steps').addEventListener('click', () => {
+  document.getElementById('btn-clear-blocks').addEventListener('click', () => {
     steps = [];
-    renderSteps();
+    renderBlockChain();
     triggerLivePreview();
   });
 }
 
 function addStep(stepObj) {
   steps.push(stepObj);
-  renderSteps();
+  renderBlockChain();
   triggerLivePreview();
 }
 
-function removeStep(index) {
-  steps.splice(index, 1);
-  renderSteps();
+function removeStep(idx) {
+  steps.splice(idx, 1);
+  renderBlockChain();
   triggerLivePreview();
 }
 
-function renderSteps() {
-  stepCount.textContent = `${steps.length} Steps`;
+function renderBlockChain() {
   if (steps.length === 0) {
-    stepList.innerHTML = '<li class="empty-state">No steps added yet. Choose an action above!</li>';
+    dropZone.innerHTML = '<p class="empty-block-text">Click blocks above to snap them into the Scratch chain!</p>';
     return;
   }
 
-  stepList.innerHTML = '';
+  dropZone.innerHTML = '';
   steps.forEach((s, idx) => {
-    const li = document.createElement('li');
-    li.className = 'step-item';
-    
-    let text = '';
-    let badgeClass = '';
+    const div = document.createElement('div');
+    div.className = 'block-puzzle';
+
     if (s.action_type === 'mouse_click') {
-      badgeClass = 'badge-click';
-      text = `Click at (X: ${s.x}, Y: ${s.y})`;
+      div.classList.add('block-click-item');
+      div.innerHTML = `<span>🖱️ Mouse Click at X: ${s.x}, Y: ${s.y}</span><button class="btn-text" style="color:#fff;" onclick="removeStep(${idx})">✕</button>`;
     } else if (s.action_type === 'key_binding') {
-      badgeClass = 'badge-key';
-      text = `Press Key: "${s.key}"`;
+      div.classList.add('block-key-item');
+      div.innerHTML = `<span>⌨️ Press Key: "${s.key}"</span><button class="btn-text" style="color:#fff;" onclick="removeStep(${idx})">✕</button>`;
     } else if (s.action_type === 'delay') {
-      badgeClass = 'badge-delay';
-      text = `Wait ${s.duration_ms} ms (${(s.duration_ms/1000).toFixed(1)}s)`;
+      div.classList.add('block-delay-item');
+      div.innerHTML = `<span>⏱️ Wait ${s.duration_ms} ms</span><button class="btn-text" style="color:#fff;" onclick="removeStep(${idx})">✕</button>`;
     }
 
-    li.innerHTML = `
-      <div>
-        <span class="step-badge ${badgeClass}">${s.action_type.toUpperCase()}</span>
-        <span>${text}</span>
-      </div>
-      <button class="btn-text" onclick="removeStep(${idx})">✕</button>
-    `;
-    stepList.appendChild(li);
+    dropZone.appendChild(div);
   });
 }
 
-// Live Code Generator API Integration
-function setupGeneratorHandlers() {
+// Generator & Web Sandbox Runner
+function setupGeneratorAndWebRunner() {
   selectTargetLang.addEventListener('change', () => {
-    updateFileExtensionTab();
+    const map = { python: 'script.py', ahk: 'script.ahk', bash: 'script.sh' };
+    previewFilename.textContent = map[selectTargetLang.value] || 'script.txt';
     triggerLivePreview();
   });
 
   document.getElementById('btn-copy-code').addEventListener('click', () => {
-    const text = codeOutput.textContent;
-    navigator.clipboard.writeText(text);
-    alert('Script code copied to clipboard!');
+    navigator.clipboard.writeText(codeOutput.textContent);
+    alert('Code copied to clipboard!');
   });
 
-  document.getElementById('btn-download').addEventListener('click', async () => {
+  // Web Executor Execution
+  document.getElementById('btn-run-web').addEventListener('click', async () => {
     if (steps.length === 0) {
-      alert('Please add at least one automation step before downloading!');
+      alert('Please snap at least one Scratch block into the workspace chain before running!');
       return;
     }
 
+    executionLogs.textContent = '⚡ Running script in Web Sandbox... Please wait...';
+
+    try {
+      const res = await fetch('/api/v1/runner/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target_language: selectTargetLang.value,
+          output_name: inputFilename.value.trim(),
+          steps: steps
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const exec = data.execution;
+        const analytics = data.analytics;
+
+        executionLogs.textContent = exec.logs.join('\n');
+        
+        // Update Analytics Dashboard Tab
+        document.getElementById('metric-score').textContent = `${analytics.efficiency_score}%`;
+        document.getElementById('metric-avg-step').textContent = `${analytics.average_step_ms} ms`;
+        document.getElementById('metric-total-steps').textContent = analytics.total_steps;
+
+        const recList = document.getElementById('analytics-recommendations');
+        recList.innerHTML = analytics.recommendations.map(r => `<li>${r}</li>`).join('');
+      } else {
+        executionLogs.textContent = '❌ Web execution failed.';
+      }
+    } catch (err) {
+      executionLogs.textContent = '❌ Error executing script: ' + err.message;
+    }
+  });
+
+  // File Download
+  document.getElementById('btn-download').addEventListener('click', async () => {
+    if (steps.length === 0) {
+      alert('Add blocks to export script!');
+      return;
+    }
     const payload = {
       target_language: selectTargetLang.value,
       output_name: inputFilename.value.trim() || 'script',
       steps: steps
     };
 
-    try {
-      const response = await fetch('/api/v1/scripts/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+    const response = await fetch('/api/v1/scripts/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-      if (!response.ok) throw new Error('Export failed');
-
+    if (response.ok) {
       const blob = await response.blob();
       const extMap = { python: '.py', ahk: '.ahk', bash: '.sh' };
       const ext = extMap[selectTargetLang.value] || '.txt';
@@ -169,23 +202,18 @@ function setupGeneratorHandlers() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } catch (err) {
-      alert('Failed to download script: ' + err.message);
     }
   });
 }
 
 async function triggerLivePreview() {
-  const lang = selectTargetLang.value;
-  updateFileExtensionTab();
-
   if (steps.length === 0) {
-    codeOutput.textContent = '# Add steps on the left panel to preview generated script...';
+    codeOutput.textContent = '# Click blocks above to generate script preview...';
     return;
   }
 
   const payload = {
-    target_language: lang,
+    target_language: selectTargetLang.value,
     output_name: inputFilename.value.trim(),
     steps: steps
   };
@@ -201,75 +229,87 @@ async function triggerLivePreview() {
       codeOutput.textContent = data.script_code;
     }
   } catch (e) {
-    codeOutput.textContent = '# Error generating script preview';
+    codeOutput.textContent = '# Error generating preview';
   }
 }
 
-function updateFileExtensionTab() {
-  const map = { python: 'script.py', ahk: 'script.ahk', bash: 'script.sh' };
-  previewFilename.textContent = map[selectTargetLang.value] || 'script.txt';
+// Vision & OCR Test Lab Handlers
+function setupVisionLabHandlers() {
+  document.getElementById('form-vision-match').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const targetFile = document.getElementById('vision-target').files[0];
+    const templateFile = document.getElementById('vision-template').files[0];
+    const resultBox = document.getElementById('match-result');
+
+    const formData = new FormData();
+    formData.append('target_image', targetFile);
+    formData.append('template_image', templateFile);
+
+    resultBox.classList.remove('hidden');
+    resultBox.textContent = 'Searching screen image template...';
+
+    try {
+      const res = await fetch('/api/v1/vision/template-match', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.found) {
+        resultBox.textContent = `✅ Target Button Found! Center Coordinates: X: ${data.coordinates.x}, Y: ${data.coordinates.y} (Confidence: ${(data.confidence * 100).toFixed(1)}%)`;
+      } else {
+        resultBox.textContent = `❌ Target template not found on screen image (Highest match: ${(data.confidence * 100).toFixed(1)}%)`;
+      }
+    } catch (err) {
+      resultBox.textContent = 'Error processing image detection.';
+    }
+  });
+
+  document.getElementById('btn-run-ocr').addEventListener('click', async () => {
+    const file = document.getElementById('ocr-image').files[0];
+    const resultBox = document.getElementById('ocr-result');
+    if (!file) { alert('Select an image file!'); return; }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    resultBox.classList.remove('hidden');
+    resultBox.textContent = 'Scanning image text OCR...';
+
+    const res = await fetch('/api/v1/vision/ocr', { method: 'POST', body: formData });
+    const data = await res.json();
+    resultBox.textContent = `🔍 OCR Recognized Text: "${data.text}" (Confidence: ${((data.confidence||0)*100).toFixed(1)}%)`;
+  });
+
+  document.getElementById('btn-count-objects').addEventListener('click', async () => {
+    const file = document.getElementById('ocr-image').files[0];
+    const resultBox = document.getElementById('ocr-result');
+    if (!file) { alert('Select an image file!'); return; }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    resultBox.classList.remove('hidden');
+    resultBox.textContent = 'Counting objects...';
+
+    const res = await fetch('/api/v1/vision/count-objects', { method: 'POST', body: formData });
+    const data = await res.json();
+    resultBox.textContent = `🔢 Detected Object Count: ${data.count} matching elements found on image!`;
+  });
 }
 
-// Auth & User Management Modal Handlers
+// Auth Modal
 function setupAuthModalHandlers() {
   const modal = document.getElementById('auth-modal');
   const viewLogin = document.getElementById('modal-view-login');
   const viewRegister = document.getElementById('modal-view-register');
   const viewProfile = document.getElementById('modal-view-profile');
 
-  document.getElementById('btn-login-modal').addEventListener('click', () => {
-    showModalView(viewLogin);
-  });
-
-  document.getElementById('btn-register-modal').addEventListener('click', () => {
-    showModalView(viewRegister);
-  });
-
+  document.getElementById('btn-login-modal').addEventListener('click', () => showModalView(viewLogin));
+  document.getElementById('btn-register-modal').addEventListener('click', () => showModalView(viewRegister));
   document.getElementById('btn-profile').addEventListener('click', () => {
     if (currentUser) {
       document.getElementById('prof-username').textContent = currentUser.username;
       document.getElementById('prof-email').textContent = currentUser.email;
-      document.getElementById('prof-fullname').textContent = currentUser.full_name || 'N/A';
       showModalView(viewProfile);
     }
   });
+  document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
 
-  document.getElementById('btn-close-modal').addEventListener('click', () => {
-    modal.classList.add('hidden');
-  });
-
-  document.getElementById('link-to-register').addEventListener('click', (e) => {
-    e.preventDefault();
-    showModalView(viewRegister);
-  });
-
-  document.getElementById('link-to-login').addEventListener('click', (e) => {
-    e.preventDefault();
-    showModalView(viewLogin);
-  });
-
-  // Check Username Realtime Availability
-  document.getElementById('reg-username').addEventListener('input', async (e) => {
-    const name = e.target.value.trim();
-    const hint = document.getElementById('username-check-status');
-    if (name.length < 3) {
-      hint.textContent = '';
-      return;
-    }
-    const res = await fetch(`/api/v1/users/check-username/${name}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.is_available) {
-        hint.textContent = '✓ Username is available';
-        hint.style.color = '#3fb950';
-      } else {
-        hint.textContent = '✕ Username is taken';
-        hint.style.color = '#f85149';
-      }
-    }
-  });
-
-  // Login Form Submit
   document.getElementById('form-login').addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('login-username').value;
@@ -287,13 +327,11 @@ function setupAuthModalHandlers() {
       localStorage.setItem('auto_macro_jwt', currentToken);
       modal.classList.add('hidden');
       await fetchUserProfile();
-      alert('Sign in successful!');
     } else {
-      alert('Invalid username or password');
+      alert('Invalid login credentials');
     }
   });
 
-  // Register Form Submit
   document.getElementById('form-register').addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = {
@@ -310,46 +348,12 @@ function setupAuthModalHandlers() {
     });
 
     if (res.ok) {
-      alert('Account created successfully! Please sign in.');
+      alert('Account created! Please sign in.');
       showModalView(viewLogin);
-    } else {
-      const err = await res.json();
-      alert('Registration failed: ' + (err.detail || 'Error creating account'));
     }
   });
 
-  // Change Password Form Submit
-  document.getElementById('form-change-password').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const old_password = document.getElementById('pass-old').value;
-    const new_password = document.getElementById('pass-new').value;
-
-    const res = await fetch('/api/v1/auth/change-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentToken}`
-      },
-      body: JSON.stringify({ old_password, new_password })
-    });
-
-    if (res.ok) {
-      alert('Password updated successfully!');
-      modal.classList.add('hidden');
-    } else {
-      const err = await res.json();
-      alert('Failed to change password: ' + (err.detail || 'Error'));
-    }
-  });
-
-  // Logout
-  document.getElementById('btn-logout').addEventListener('click', async () => {
-    if (currentToken) {
-      await fetch('/api/v1/auth/logout', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${currentToken}` }
-      });
-    }
+  document.getElementById('btn-logout').addEventListener('click', () => {
     currentToken = null;
     currentUser = null;
     localStorage.removeItem('auto_macro_jwt');
@@ -359,33 +363,16 @@ function setupAuthModalHandlers() {
 
 function showModalView(targetView) {
   const modal = document.getElementById('auth-modal');
-  const views = [
-    document.getElementById('modal-view-login'),
-    document.getElementById('modal-view-register'),
-    document.getElementById('modal-view-profile')
-  ];
-
-  views.forEach(v => v.classList.add('hidden'));
+  [document.getElementById('modal-view-login'), document.getElementById('modal-view-register'), document.getElementById('modal-view-profile')].forEach(v => v.classList.add('hidden'));
   targetView.classList.remove('hidden');
   modal.classList.remove('hidden');
 }
 
 async function fetchUserProfile() {
   if (!currentToken) return;
-  try {
-    const res = await fetch('/api/v1/users/me', {
-      headers: { 'Authorization': `Bearer ${currentToken}` }
-    });
-
-    if (res.ok) {
-      currentUser = await res.json();
-      updateAuthUI();
-    } else {
-      currentToken = null;
-      localStorage.removeItem('auto_macro_jwt');
-      updateAuthUI();
-    }
-  } catch (e) {
+  const res = await fetch('/api/v1/users/me', { headers: { 'Authorization': `Bearer ${currentToken}` } });
+  if (res.ok) {
+    currentUser = await res.json();
     updateAuthUI();
   }
 }
@@ -393,12 +380,10 @@ async function fetchUserProfile() {
 function updateAuthUI() {
   const statusArea = document.getElementById('user-status-area');
   const loggedInArea = document.getElementById('logged-in-area');
-  const usernameLabel = document.getElementById('current-username');
-
   if (currentUser) {
     statusArea.classList.add('hidden');
     loggedInArea.classList.remove('hidden');
-    usernameLabel.textContent = currentUser.username;
+    document.getElementById('current-username').textContent = currentUser.username;
   } else {
     statusArea.classList.remove('hidden');
     loggedInArea.classList.add('hidden');

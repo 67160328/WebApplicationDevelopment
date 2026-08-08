@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoMacro - Visual Script & Code Generator</title>
+  <title>AutoMacro - Visual Scratch & AI Script Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
   <header class="navbar">
     <div class="nav-brand">
       <span class="logo-icon">⚡</span>
-      <span class="logo-text">AutoMacro <small class="badge">Engine v1.0</small></span>
+      <span class="logo-text">AutoMacro <small class="badge">AI Engine v2.0</small></span>
     </div>
 
     <div class="nav-actions">
@@ -38,184 +38,195 @@
   <!-- Main App Layout -->
   <main class="app-container">
     
-    <!-- Hero Banner -->
-    <section class="hero-section">
-      <h1>Automate Anything in Seconds</h1>
-      <p>Visual No-Code Macro Script Builder for Python, AutoHotkey & Bash</p>
-    </section>
+    <!-- Workspace Tab Switcher -->
+    <div class="workspace-tabs">
+      <button class="tab-btn active" data-tab="tab-scratch">🧩 Scratch Block Builder</button>
+      <button class="tab-btn" data-tab="tab-vision">👁️ Image Detection & OCR</button>
+      <button class="tab-btn" data-tab="tab-analytics">📊 Execution & Analytics Dashboard</button>
+    </div>
 
-    <!-- App Studio Workspace Grid -->
-    <div class="studio-grid">
-      
-      <!-- Left Panel: Action Builder -->
-      <div class="card panel-builder">
-        <div class="panel-header">
-          <h2>1. Add Automation Steps</h2>
-          <span class="step-counter" id="step-count">0 Steps</span>
-        </div>
+    <!-- TAB 1: SCRATCH BUILDER & WEB EXECUTOR -->
+    <div id="tab-scratch" class="tab-content active">
+      <div class="studio-grid">
+        
+        <!-- Scratch Toolbox & Builder Panel -->
+        <div class="card panel-builder">
+          <div class="panel-header">
+            <h2>🧩 Scratch Visual Blocks</h2>
+            <button id="btn-run-web" class="btn btn-success">▶ Run On Web</button>
+          </div>
 
-        <div class="action-buttons">
-          <button class="btn-action-tab active" data-action="mouse_click">
-            <span class="icon">🖱️</span> Click
-          </button>
-          <button class="btn-action-tab" data-action="key_binding">
-            <span class="icon">⌨️</span> Keypress
-          </button>
-          <button class="btn-action-tab" data-action="delay">
-            <span class="icon">⏱️</span> Wait
-          </button>
-        </div>
-
-        <!-- Form for Mouse Click -->
-        <form id="form-mouse" class="action-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>X Coordinate (px)</label>
-              <input type="number" id="input-x" placeholder="e.g. 500" value="450" min="0">
-            </div>
-            <div class="form-group">
-              <label>Y Coordinate (px)</label>
-              <input type="number" id="input-y" placeholder="e.g. 300" value="320" min="0">
+          <div class="scratch-toolbox">
+            <span class="toolbox-title">Click to Add Block:</span>
+            <div class="block-palette">
+              <button class="block-chip block-event" data-block="click">🖱️ Click (X, Y)</button>
+              <button class="block-chip block-event" data-block="key">⌨️ Keypress</button>
+              <button class="block-chip block-control" data-block="delay">⏱️ Wait Delay</button>
+              <button class="block-chip block-vision" data-block="ocr">🔍 OCR Text Match</button>
+              <button class="block-chip block-vision" data-block="image">👁️ If Screen Image Found</button>
             </div>
           </div>
-          <button type="submit" class="btn btn-block btn-accent">+ Add Click Action</button>
-        </form>
 
-        <!-- Form for Keypress -->
-        <form id="form-key" class="action-form hidden">
-          <div class="form-group">
-            <label>Keypress / Shortcut</label>
-            <input type="text" id="input-key" placeholder="e.g. enter, space, ctrl+c" value="enter">
+          <!-- Scratch Block Stack View -->
+          <div class="scratch-workspace">
+            <div class="workspace-header">
+              <span>Block Stack Chain</span>
+              <button id="btn-clear-blocks" class="btn-text">Clear Chain</button>
+            </div>
+            <div id="block-chain-container" class="block-chain">
+              <div class="block-puzzle block-hat">🚩 When Script Starts</div>
+              <div id="scratch-drop-zone">
+                <p class="empty-block-text">Click blocks above to snap them into the Scratch chain!</p>
+              </div>
+            </div>
           </div>
-          <button type="submit" class="btn btn-block btn-accent">+ Add Keypress Action</button>
-        </form>
-
-        <!-- Form for Delay -->
-        <form id="form-delay" class="action-form hidden">
-          <div class="form-group">
-            <label>Wait Duration (Milliseconds)</label>
-            <input type="number" id="input-delay" placeholder="1000 = 1 sec" value="1000" min="10">
-          </div>
-          <button type="submit" class="btn btn-block btn-accent">+ Add Wait Delay</button>
-        </form>
-
-        <!-- Step List Stream -->
-        <div class="step-list-container">
-          <div class="step-list-header">
-            <span>Recorded Sequence</span>
-            <button id="btn-clear-steps" class="btn-text">Clear All</button>
-          </div>
-          <ul id="step-list" class="step-list">
-            <li class="empty-state">No steps added yet. Choose an action above!</li>
-          </ul>
         </div>
-      </div>
 
-      <!-- Right Panel: Code Generator Previewer -->
-      <div class="card panel-preview">
-        <div class="panel-header">
-          <h2>2. Target Generator</h2>
-          <div class="lang-selector">
+        <!-- Code Preview & Live Logs Panel -->
+        <div class="card panel-preview">
+          <div class="panel-header">
+            <h2>2. Target Code & Live Logs</h2>
             <select id="select-target-lang" class="select-input">
               <option value="python">🐍 Python (PyAutoGUI)</option>
               <option value="ahk">⚡ AutoHotkey (.ahk)</option>
               <option value="bash">🐧 Bash (xdotool)</option>
             </select>
           </div>
-        </div>
 
-        <div class="code-editor-box">
-          <div class="editor-bar">
-            <span class="file-tab" id="preview-filename">script.py</span>
-            <button id="btn-copy-code" class="btn-icon" title="Copy to clipboard">📋 Copy</button>
+          <!-- Code Box -->
+          <div class="code-editor-box">
+            <div class="editor-bar">
+              <span class="file-tab" id="preview-filename">script.py</span>
+              <button id="btn-copy-code" class="btn-icon">📋 Copy</button>
+            </div>
+            <pre><code id="code-output"># Scratch blocks code will appear here...</code></pre>
           </div>
-          <pre><code id="code-output"># Auto-generated script preview will appear here...</code></pre>
+
+          <!-- Execution Logs Box -->
+          <div class="log-console-box">
+            <div class="console-header">🖥️ Web Sandbox Live Execution Log</div>
+            <pre id="execution-logs" class="console-body">Click "Run On Web" to execute script and stream live logs...</pre>
+          </div>
+
+          <div class="download-bar">
+            <input type="text" id="input-filename" class="text-input" value="macro_script">
+            <button id="btn-download" class="btn btn-primary">⬇️ Download</button>
+          </div>
         </div>
 
-        <div class="download-bar">
-          <input type="text" id="input-filename" class="text-input" placeholder="Script name" value="my_automation_script">
-          <button id="btn-download" class="btn btn-success">
-            <span>⬇️ Download Script</span>
-          </button>
+      </div>
+    </div>
+
+    <!-- TAB 2: COMPUTER VISION & OCR TESTING -->
+    <div id="tab-vision" class="tab-content hidden">
+      <div class="card">
+        <div class="panel-header">
+          <h2>👁️ Computer Vision & OCR Test Lab</h2>
+        </div>
+        <div class="vision-lab-grid">
+          
+          <!-- Template Matcher -->
+          <div class="vision-card">
+            <h3>1. Screen Image Detection</h3>
+            <p class="vision-desc">Upload screen image and target template to test detection</p>
+            <form id="form-vision-match">
+              <div class="form-group"><label>Screen Image</label><input type="file" id="vision-target" required></div>
+              <div class="form-group"><label>Target Button Image</label><input type="file" id="vision-template" required></div>
+              <button type="submit" class="btn btn-accent btn-block">Detect Coordinates</button>
+            </form>
+            <div id="match-result" class="vision-result-box hidden"></div>
+          </div>
+
+          <!-- OCR & Object Counter -->
+          <div class="vision-card">
+            <h3>2. OCR & Object Counter</h3>
+            <p class="vision-desc">Scan text or count matching icon objects</p>
+            <form id="form-ocr-scan">
+              <div class="form-group"><label>Image File</label><input type="file" id="ocr-image" required></div>
+              <div class="form-row">
+                <button type="button" id="btn-run-ocr" class="btn btn-success btn-block">🔍 Read Text OCR</button>
+                <button type="button" id="btn-count-objects" class="btn btn-secondary btn-block">🔢 Count Objects</button>
+              </div>
+            </form>
+            <div id="ocr-result" class="vision-result-box hidden"></div>
+          </div>
+
         </div>
       </div>
-
     </div>
+
+    <!-- TAB 3: PERFORMANCE ANALYTICS -->
+    <div id="tab-analytics" class="tab-content hidden">
+      <div class="card">
+        <div class="panel-header">
+          <h2>📊 Script Performance Diagnostics & Analytics</h2>
+        </div>
+        
+        <div class="analytics-metrics-grid">
+          <div class="metric-card">
+            <span class="metric-title">Efficiency Score</span>
+            <span class="metric-value" id="metric-score">95%</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Average Step Duration</span>
+            <span class="metric-value" id="metric-avg-step">120 ms</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Total Script Steps</span>
+            <span class="metric-value" id="metric-total-steps">0</span>
+          </div>
+        </div>
+
+        <div class="analytics-detail-box">
+          <h3>💡 AI Optimization Recommendations</h3>
+          <ul id="analytics-recommendations" class="recommendation-list">
+            <li>Run a script execution to see real-time performance analytics and bottleneck suggestions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
   </main>
 
-  <!-- Auth Modal Container -->
+  <!-- Auth Modal -->
   <div id="auth-modal" class="modal-backdrop hidden">
     <div class="modal-card">
       <button class="modal-close" id="btn-close-modal">✕</button>
       
-      <!-- Login View -->
+      <!-- Login -->
       <div id="modal-view-login">
         <h3>Welcome Back</h3>
         <p class="modal-subtitle">Log in to manage your automation scripts</p>
         <form id="form-login">
-          <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="login-username" required placeholder="Enter username">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" required placeholder="Enter password">
-          </div>
+          <div class="form-group"><label>Username</label><input type="text" id="login-username" required></div>
+          <div class="form-group"><label>Password</label><input type="password" id="login-password" required></div>
           <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </form>
         <p class="modal-footer-text">Don't have an account? <a href="#" id="link-to-register">Sign up</a></p>
       </div>
 
-      <!-- Register View -->
+      <!-- Register -->
       <div id="modal-view-register" class="hidden">
         <h3>Create Account</h3>
         <p class="modal-subtitle">Join AutoMacro Script Generator Platform</p>
         <form id="form-register">
-          <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="reg-username" required placeholder="Choose a username">
-            <small id="username-check-status" class="hint-text"></small>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="reg-email" required placeholder="name@domain.com">
-          </div>
-          <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="reg-fullname" placeholder="Optional name">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="reg-password" required minlength="6" placeholder="At least 6 characters">
-          </div>
+          <div class="form-group"><label>Username</label><input type="text" id="reg-username" required></div>
+          <div class="form-group"><label>Email</label><input type="email" id="reg-email" required></div>
+          <div class="form-group"><label>Full Name</label><input type="text" id="reg-fullname"></div>
+          <div class="form-group"><label>Password</label><input type="password" id="reg-password" required minlength="6"></div>
           <button type="submit" class="btn btn-success btn-block">Create Account</button>
         </form>
         <p class="modal-footer-text">Already have an account? <a href="#" id="link-to-login">Sign in</a></p>
       </div>
 
-      <!-- Profile View -->
+      <!-- Profile -->
       <div id="modal-view-profile" class="hidden">
         <h3>User Profile</h3>
-        <div id="profile-info-box" class="profile-info">
+        <div class="profile-info">
           <p><strong>Username:</strong> <span id="prof-username"></span></p>
           <p><strong>Email:</strong> <span id="prof-email"></span></p>
-          <p><strong>Full Name:</strong> <span id="prof-fullname"></span></p>
         </div>
-        <hr class="divider">
-        <h4>Change Password</h4>
-        <form id="form-change-password">
-          <div class="form-group">
-            <label>Current Password</label>
-            <input type="password" id="pass-old" required placeholder="Current password">
-          </div>
-          <div class="form-group">
-            <label>New Password</label>
-            <input type="password" id="pass-new" required minlength="6" placeholder="New password">
-          </div>
-          <button type="submit" class="btn btn-secondary btn-block">Update Password</button>
-        </form>
       </div>
-
     </div>
   </div>
 
