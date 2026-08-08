@@ -3,188 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoMacro - Visual Scratch & AI Script Studio</title>
+  <title>AutoMacro - Interactive Scratch & Automation Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
-  <!-- Background Animated Gradient Orbs -->
+  <!-- Animated Glowing Background Orbs -->
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
 
-  <!-- Header / Navigation Bar -->
+  <!-- Top Navigation Header -->
   <header class="navbar">
     <div class="nav-brand">
       <span class="logo-icon">⚡</span>
-      <span class="logo-text">AutoMacro <small class="badge">AI Engine v2.0</small></span>
+      <span class="logo-text">AutoMacro <small class="badge">Visual Studio v3.0</small></span>
     </div>
 
+    <!-- Mode Selector Header Controls -->
+    <div class="header-controls">
+      <button id="btn-play-sim" class="btn btn-success">
+        <span>▶ Play Simulation</span>
+      </button>
+      <button id="btn-web-run" class="btn btn-accent">
+        <span>🚀 Execute Server API</span>
+      </button>
+    </div>
+
+    <!-- Auth Area -->
     <div class="nav-actions">
       <div id="user-status-area">
-        <button id="btn-login-modal" class="btn btn-secondary">Sign In</button>
-        <button id="btn-register-modal" class="btn btn-primary">Get Started</button>
+        <button id="btn-login-modal" class="btn btn-secondary btn-sm">Sign In</button>
+        <button id="btn-register-modal" class="btn btn-primary btn-sm">Get Started</button>
       </div>
       <div id="logged-in-area" class="hidden">
-        <span class="user-greeting">👋 Hi, <strong id="current-username">User</strong></span>
-        <button id="btn-profile" class="btn btn-secondary btn-sm">Profile</button>
+        <span class="user-greeting">👋 <strong id="current-username">User</strong></span>
         <button id="btn-logout" class="btn btn-outline-danger btn-sm">Logout</button>
       </div>
     </div>
   </header>
 
-  <!-- Main App Layout -->
-  <main class="app-container">
+  <!-- Main 3-Column Interactive Studio Layout -->
+  <main class="studio-layout">
     
-    <!-- Workspace Tab Switcher -->
-    <div class="workspace-tabs">
-      <button class="tab-btn active" data-tab="tab-scratch">🧩 Scratch Block Builder</button>
-      <button class="tab-btn" data-tab="tab-vision">👁️ Image Detection & OCR</button>
-      <button class="tab-btn" data-tab="tab-analytics">📊 Execution & Analytics Dashboard</button>
-    </div>
+    <!-- LEFT PANEL: SCRATCH BLOCK PALETTE -->
+    <aside class="panel panel-palette">
+      <div class="panel-title">
+        <h3>🧩 Block Palette</h3>
+        <p class="subtitle">Click or drag blocks to build your script</p>
+      </div>
 
-    <!-- TAB 1: SCRATCH BUILDER & WEB EXECUTOR -->
-    <div id="tab-scratch" class="tab-content active">
-      <div class="studio-grid">
-        
-        <!-- Scratch Toolbox & Builder Panel -->
-        <div class="card panel-builder">
-          <div class="panel-header">
-            <h2>🧩 Scratch Visual Blocks</h2>
-            <button id="btn-run-web" class="btn btn-success">▶ Run On Web</button>
+      <div class="palette-category">
+        <span class="category-label">Events & Triggers</span>
+        <button class="palette-block block-event" data-type="start">
+          <span>🚩 On Script Start</span>
+        </button>
+      </div>
+
+      <div class="palette-category">
+        <span class="category-label">Mouse Actions</span>
+        <button class="palette-block block-mouse" data-type="click">
+          <span>🖱️ Mouse Click (X, Y)</span>
+        </button>
+        <button class="palette-block block-mouse" data-type="dblclick">
+          <span>🖱️ Double Click (X, Y)</span>
+        </button>
+      </div>
+
+      <div class="palette-category">
+        <span class="category-label">Keyboard Actions</span>
+        <button class="palette-block block-key" data-type="key">
+          <span>⌨️ Press Key / Shortcut</span>
+        </button>
+      </div>
+
+      <div class="palette-category">
+        <span class="category-label">Control & Timing</span>
+        <button class="palette-block block-delay" data-type="delay">
+          <span>⏱️ Wait Delay (ms)</span>
+        </button>
+      </div>
+
+      <div class="palette-category">
+        <span class="category-label">Vision & AI</span>
+        <button class="palette-block block-vision" data-type="ocr">
+          <span>🔍 OCR Text Recognition</span>
+        </button>
+        <button class="palette-block block-vision" data-type="image">
+          <span>👁️ Screen Image Detect</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL: VISUAL SCRATCH CANVAS & CHAIN WORKSPACE -->
+    <section class="panel panel-workspace">
+      <div class="workspace-top-bar">
+        <div class="workspace-info">
+          <h3>Visual Block Chain Canvas</h3>
+          <span id="chain-step-count" class="badge-count">0 Steps</span>
+        </div>
+        <button id="btn-clear-chain" class="btn-text">Clear Chain</button>
+      </div>
+
+      <!-- Scratch Block Canvas Container -->
+      <div id="scratch-canvas" class="scratch-canvas">
+        <div class="scratch-block block-hat">
+          <span class="block-icon">🚩</span>
+          <span class="block-text">When Script Starts</span>
+        </div>
+
+        <div id="block-chain-list" class="block-chain-list">
+          <div class="empty-canvas-prompt">
+            <span class="prompt-icon">🧩</span>
+            <p>Your workspace is empty.</p>
+            <small>Click blocks on the left or click directly on the Interactive Screen Simulator on the right!</small>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="scratch-toolbox">
-            <span class="toolbox-title">Click to Add Block:</span>
-            <div class="block-palette">
-              <button class="block-chip block-event" data-block="click">🖱️ Click (X, Y)</button>
-              <button class="block-chip block-event" data-block="key">⌨️ Keypress</button>
-              <button class="block-chip block-control" data-block="delay">⏱️ Wait Delay</button>
-              <button class="block-chip block-vision" data-block="ocr">🔍 OCR Text Match</button>
-              <button class="block-chip block-vision" data-block="image">👁️ If Screen Image Found</button>
-            </div>
-          </div>
+    <!-- RIGHT PANEL: INTERACTIVE SCREEN SIMULATOR & GENERATOR PREVIEW -->
+    <aside class="panel panel-simulator">
+      
+      <!-- Tab Controls for Right Panel -->
+      <div class="sim-tabs">
+        <button class="sim-tab active" data-tab="tab-screen">🖥️ Screen Simulator</button>
+        <button class="sim-tab" data-tab="tab-code">💻 Generated Code</button>
+        <button class="sim-tab" data-tab="tab-logs">🖥️ Live Logs</button>
+      </div>
 
-          <!-- Scratch Block Stack View -->
-          <div class="scratch-workspace">
-            <div class="workspace-header">
-              <span>Block Stack Chain</span>
-              <button id="btn-clear-blocks" class="btn-text">Clear Chain</button>
+      <!-- TAB 1: INTERACTIVE SCREEN SIMULATOR -->
+      <div id="tab-screen" class="sim-tab-content active">
+        <div class="sim-header">
+          <span class="sim-status-badge">Target Screen Simulation (Click anywhere to add Click Step!)</span>
+        </div>
+
+        <!-- Virtual Interactive Screen Canvas -->
+        <div id="virtual-screen" class="virtual-screen">
+          <div class="virtual-app-window">
+            <div class="app-window-header">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="window-title">Demo Desktop App Sandbox</span>
             </div>
-            <div id="block-chain-container" class="block-chain">
-              <div class="block-puzzle block-hat">🚩 When Script Starts</div>
-              <div id="scratch-drop-zone">
-                <p class="empty-block-text">Click blocks above to snap them into the Scratch chain!</p>
+            <div class="app-window-body">
+              <button class="demo-btn" id="demo-btn-login">Login Button (Click Me)</button>
+              <div class="demo-input-box">
+                <span>Username Input Field</span>
+              </div>
+              <div class="demo-card">
+                <span>OCR Text: "SYSTEM_READY"</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Code Preview & Live Logs Panel -->
-        <div class="card panel-preview">
-          <div class="panel-header">
-            <h2>2. Target Code & Live Logs</h2>
-            <select id="select-target-lang" class="select-input">
-              <option value="python">🐍 Python (PyAutoGUI)</option>
-              <option value="ahk">⚡ AutoHotkey (.ahk)</option>
-              <option value="bash">🐧 Bash (xdotool)</option>
-            </select>
-          </div>
-
-          <!-- Code Box -->
-          <div class="code-editor-box">
-            <div class="editor-bar">
-              <span class="file-tab" id="preview-filename">script.py</span>
-              <button id="btn-copy-code" class="btn-icon">📋 Copy</button>
-            </div>
-            <pre><code id="code-output"># Scratch blocks code will appear here...</code></pre>
-          </div>
-
-          <!-- Execution Logs Box -->
-          <div class="log-console-box">
-            <div class="console-header">🖥️ Web Sandbox Live Execution Log</div>
-            <pre id="execution-logs" class="console-body">Click "Run On Web" to execute script and stream live logs...</pre>
-          </div>
-
-          <div class="download-bar">
-            <input type="text" id="input-filename" class="text-input" value="macro_script">
-            <button id="btn-download" class="btn btn-primary">⬇️ Download</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- TAB 2: COMPUTER VISION & OCR TESTING -->
-    <div id="tab-vision" class="tab-content hidden">
-      <div class="card">
-        <div class="panel-header">
-          <h2>👁️ Computer Vision & OCR Test Lab</h2>
-        </div>
-        <div class="vision-lab-grid">
-          
-          <!-- Template Matcher -->
-          <div class="vision-card">
-            <h3>1. Screen Image Detection</h3>
-            <p class="vision-desc">Upload screen image and target template to test detection</p>
-            <form id="form-vision-match">
-              <div class="form-group"><label>Screen Image</label><input type="file" id="vision-target" required></div>
-              <div class="form-group"><label>Target Button Image</label><input type="file" id="vision-template" required></div>
-              <button type="submit" class="btn btn-accent btn-block">Detect Coordinates</button>
-            </form>
-            <div id="match-result" class="vision-result-box hidden"></div>
-          </div>
-
-          <!-- OCR & Object Counter -->
-          <div class="vision-card">
-            <h3>2. OCR & Object Counter</h3>
-            <p class="vision-desc">Scan text or count matching icon objects</p>
-            <form id="form-ocr-scan">
-              <div class="form-group"><label>Image File</label><input type="file" id="ocr-image" required></div>
-              <div class="form-row">
-                <button type="button" id="btn-run-ocr" class="btn btn-success btn-block">🔍 Read Text OCR</button>
-                <button type="button" id="btn-count-objects" class="btn btn-secondary btn-block">🔢 Count Objects</button>
-              </div>
-            </form>
-            <div id="ocr-result" class="vision-result-box hidden"></div>
-          </div>
-
+          <!-- Animated Simulated Mouse Cursor -->
+          <div id="sim-cursor" class="sim-cursor hidden">🎯</div>
         </div>
       </div>
-    </div>
 
-    <!-- TAB 3: PERFORMANCE ANALYTICS -->
-    <div id="tab-analytics" class="tab-content hidden">
-      <div class="card">
-        <div class="panel-header">
-          <h2>📊 Script Performance Diagnostics & Analytics</h2>
+      <!-- TAB 2: GENERATED CODE PREVIEW -->
+      <div id="tab-code" class="sim-tab-content hidden">
+        <div class="code-header-bar">
+          <select id="select-target-lang" class="select-input">
+            <option value="python">🐍 Python (PyAutoGUI)</option>
+            <option value="ahk">⚡ AutoHotkey (.ahk)</option>
+            <option value="bash">🐧 Bash (xdotool)</option>
+          </select>
+          <button id="btn-copy-code" class="btn-icon">📋 Copy Code</button>
         </div>
-        
-        <div class="analytics-metrics-grid">
-          <div class="metric-card">
-            <span class="metric-title">Efficiency Score</span>
-            <span class="metric-value" id="metric-score">95%</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-title">Average Step Duration</span>
-            <span class="metric-value" id="metric-avg-step">120 ms</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-title">Total Script Steps</span>
-            <span class="metric-value" id="metric-total-steps">0</span>
-          </div>
-        </div>
-
-        <div class="analytics-detail-box">
-          <h3>💡 AI Optimization Recommendations</h3>
-          <ul id="analytics-recommendations" class="recommendation-list">
-            <li>Run a script execution to see real-time performance analytics and bottleneck suggestions.</li>
-          </ul>
+        <pre><code id="code-output"># Code preview will generate automatically...</code></pre>
+        <div class="export-download-row">
+          <input type="text" id="input-filename" class="text-input" value="macro_automation_script">
+          <button id="btn-download" class="btn btn-primary btn-sm">⬇️ Download File</button>
         </div>
       </div>
-    </div>
+
+      <!-- TAB 3: LIVE LOGS CONSOLE -->
+      <div id="tab-logs" class="sim-tab-content hidden">
+        <div class="log-console-box">
+          <pre id="execution-logs" class="console-body">Logs will stream here upon executing simulation or server API...</pre>
+        </div>
+      </div>
+
+    </aside>
 
   </main>
 
@@ -192,8 +195,6 @@
   <div id="auth-modal" class="modal-backdrop hidden">
     <div class="modal-card">
       <button class="modal-close" id="btn-close-modal">✕</button>
-      
-      <!-- Login -->
       <div id="modal-view-login">
         <h3>Welcome Back</h3>
         <p class="modal-subtitle">Log in to manage your automation scripts</p>
@@ -204,28 +205,14 @@
         </form>
         <p class="modal-footer-text">Don't have an account? <a href="#" id="link-to-register">Sign up</a></p>
       </div>
-
-      <!-- Register -->
       <div id="modal-view-register" class="hidden">
         <h3>Create Account</h3>
-        <p class="modal-subtitle">Join AutoMacro Script Generator Platform</p>
         <form id="form-register">
           <div class="form-group"><label>Username</label><input type="text" id="reg-username" required></div>
           <div class="form-group"><label>Email</label><input type="email" id="reg-email" required></div>
-          <div class="form-group"><label>Full Name</label><input type="text" id="reg-fullname"></div>
           <div class="form-group"><label>Password</label><input type="password" id="reg-password" required minlength="6"></div>
           <button type="submit" class="btn btn-success btn-block">Create Account</button>
         </form>
-        <p class="modal-footer-text">Already have an account? <a href="#" id="link-to-login">Sign in</a></p>
-      </div>
-
-      <!-- Profile -->
-      <div id="modal-view-profile" class="hidden">
-        <h3>User Profile</h3>
-        <div class="profile-info">
-          <p><strong>Username:</strong> <span id="prof-username"></span></p>
-          <p><strong>Email:</strong> <span id="prof-email"></span></p>
-        </div>
       </div>
     </div>
   </div>
