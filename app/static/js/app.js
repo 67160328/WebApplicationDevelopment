@@ -2,23 +2,24 @@
 let steps = [];
 let currentToken = localStorage.getItem('auto_macro_jwt') || null;
 let currentUser = null;
-let isSimulating = false;
+let isTrackingOsMouse = false;
+let trackingInterval = null;
+let lastCapturedX = 0;
+let lastCapturedY = 0;
 
 // DOM Elements
 const blockChainList = document.getElementById('block-chain-list');
 const chainStepCount = document.getElementById('chain-step-count');
 const codeOutput = document.getElementById('code-output');
 const executionLogs = document.getElementById('execution-logs');
-const virtualScreen = document.getElementById('virtual-screen');
-const simCursor = document.getElementById('sim-cursor');
 const selectTargetLang = document.getElementById('select-target-lang');
 const inputFilename = document.getElementById('input-filename');
+const liveMousePos = document.getElementById('live-mouse-pos');
 
 document.addEventListener('DOMContentLoaded', () => {
   setupPaletteClickHandlers();
-  setupVirtualScreenClickCapture();
+  setupOsMouseTrackingToggle();
   setupSimTabs();
-  setupPlaySimulation();
   setupWebExecution();
   setupAuthModalHandlers();
 
@@ -40,15 +41,6 @@ function setupPaletteClickHandlers() {
         defaultCounter++;
         const x = prompt('Enter Mouse X Coordinate (px):', defaultX.toString());
         const y = prompt('Enter Mouse Y Coordinate (px):', defaultY.toString());
-        if (x !== null && y !== null) {
-          addStep({ action_type: 'mouse_click', x: parseInt(x) || 0, y: parseInt(y) || 0 });
-        }
-      } else if (type === 'dblclick') {
-        const defaultX = 250 + (defaultCounter * 30) % 350;
-        const defaultY = 180 + (defaultCounter * 25) % 200;
-        defaultCounter++;
-        const x = prompt('Enter Double Click X Coordinate (px):', defaultX.toString());
-        const y = prompt('Enter Double Click Y Coordinate (px):', defaultY.toString());
         if (x !== null && y !== null) {
           addStep({ action_type: 'mouse_click', x: parseInt(x) || 0, y: parseInt(y) || 0 });
         }
@@ -76,38 +68,13 @@ function setupPaletteClickHandlers() {
   });
 }
 
-// Interactive Screen Simulator Click Capture & Live Mouse Tracking
-function setupVirtualScreenClickCapture() {
-  const mouseHud = document.getElementById('mouse-hud');
-  const liveMousePos = document.getElementById('live-mouse-pos');
-
-  virtualScreen.addEventListener('mousemove', (e) => {
-    const rect = virtualScreen.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-
-    // Update real-time HUD tooltip and top status badge
-    mouseHud.classList.remove('hidden');
-    mouseHud.style.left = `${x}px`;
-    mouseHud.style.top = `${y}px`;
-    mouseHud.textContent = `X: ${x}, Y: ${y}`;
-    liveMousePos.textContent = `📍 Mouse: X: ${x}, Y: ${y}`;
-  });
-
-  virtualScreen.addEventListener('mouseleave', () => {
-    mouseHud.classList.add('hidden');
-  });
-
-  let isTrackingOsMouse = false;
-  let trackingInterval = null;
-  let lastCapturedX = 0;
-  let lastCapturedY = 0;
-
+// OS Desktop Mouse Tracking Toggle (Start / Stop Switch)
+function setupOsMouseTrackingToggle() {
   const btnFetchOsMouse = document.getElementById('btn-fetch-os-mouse');
   if (btnFetchOsMouse) {
     btnFetchOsMouse.addEventListener('click', async () => {
       if (!isTrackingOsMouse) {
-        // Start Continuous Tracking
+        // Start Continuous OS Tracking
         isTrackingOsMouse = true;
         btnFetchOsMouse.classList.add('btn-tracking-active');
         btnFetchOsMouse.innerHTML = '🔴 Tracking OS Mouse (Click to Stop & Capture)';
@@ -123,7 +90,7 @@ function setupVirtualScreenClickCapture() {
         }, 150);
 
       } else {
-        // Stop Continuous Tracking & Add Step
+        // Stop Continuous OS Tracking & Add Step
         isTrackingOsMouse = false;
         clearInterval(trackingInterval);
         trackingInterval = null;
@@ -135,37 +102,6 @@ function setupVirtualScreenClickCapture() {
       }
     });
   }
-
-  virtualScreen.addEventListener('click', (e) => {
-    if (isSimulating) return;
-    // Stop propagation if clicking on header controls
-    if (e.target.closest('.sim-header') || e.target.closest('#btn-fetch-os-mouse')) return;
-
-    const rect = virtualScreen.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-
-    // Show pulse effect at click location
-    showClickPulse(x, y);
-
-    // Add step automatically with precise unique dynamic coordinates
-    addStep({ action_type: 'mouse_click', x: x, y: y });
-  });
-}
-
-function showClickPulse(x, y) {
-  const pulse = document.createElement('div');
-  pulse.style.position = 'absolute';
-  pulse.style.left = `${x}px`;
-  pulse.style.top = `${y}px`;
-  pulse.style.width = '20px';
-  pulse.style.height = '20px';
-  pulse.style.borderRadius = '50%';
-  pulse.style.border = '2px solid #58a6ff';
-  pulse.style.transform = 'translate(-50%, -50%)';
-  pulse.style.animation = 'pulseAnim 0.5s ease-out forwards';
-  virtualScreen.appendChild(pulse);
-  setTimeout(() => pulse.remove(), 500);
 }
 
 function addStep(stepObj) {
@@ -187,7 +123,7 @@ function renderBlockChain() {
       <div class="empty-canvas-prompt">
         <span class="prompt-icon">🧩</span>
         <p>Your workspace is empty.</p>
-        <small>Click blocks on the left or click directly on the Interactive Screen Simulator on the right!</small>
+        <small>Click blocks above or use "Track Real Desktop X,Y" to capture coordinates!</small>
       </div>`;
     return;
   }
@@ -210,45 +146,7 @@ function renderBlockChain() {
   });
 }
 
-// Visual Step Execution Simulator Player
-function setupPlaySimulation() {
-  document.getElementById('btn-play-sim').addEventListener('click', async () => {
-    if (steps.length === 0) {
-      alert('Please add at least one step before playing simulation!');
-      return;
-    }
-
-    // Switch to Screen Simulator tab
-    switchSimTab('tab-screen');
-    isSimulating = true;
-    simCursor.classList.remove('hidden');
-
-    for (let i = 0; i < steps.length; i++) {
-      const step = steps[i];
-      if (step.action_type === 'mouse_click') {
-        const targetX = Math.min(step.x, virtualScreen.clientWidth - 20);
-        const targetY = Math.min(step.y, virtualScreen.clientHeight - 20);
-        
-        simCursor.style.left = `${targetX}px`;
-        simCursor.style.top = `${targetY}px`;
-        await new Promise(r => setTimeout(r, 600));
-        showClickPulse(targetX, targetY);
-      } else if (step.action_type === 'key_binding') {
-        simCursor.style.transform = 'translate(-50%, -50%) scale(1.2)';
-        await new Promise(r => setTimeout(r, 400));
-        simCursor.style.transform = 'translate(-50%, -50%) scale(1.0)';
-      } else if (step.action_type === 'delay') {
-        await new Promise(r => setTimeout(r, Math.min(step.duration_ms, 800)));
-      }
-    }
-
-    isSimulating = false;
-    setTimeout(() => simCursor.classList.add('hidden'), 500);
-    alert('Visual Simulation playback completed!');
-  });
-}
-
-// Server API Execution & Code Generation
+// Server API Web Execution & Code Preview
 function setupWebExecution() {
   document.getElementById('btn-web-run').addEventListener('click', async () => {
     if (steps.length === 0) {
@@ -317,7 +215,7 @@ function setupWebExecution() {
 
 async function triggerLivePreview() {
   if (steps.length === 0) {
-    codeOutput.textContent = '# Code preview will generate automatically when steps are added...';
+    codeOutput.textContent = '# Script preview will generate automatically when blocks are added...';
     return;
   }
 

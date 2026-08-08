@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoMacro - Interactive Scratch & Automation Studio</title>
+  <title>AutoMacro - Visual Scratch & Automation Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css?v=3.0">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
 </head>
 <body>
 
-  <!-- Animated Glowing Background Orbs -->
+  <!-- Animated Background Orbs -->
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
 
@@ -19,21 +19,18 @@
   <header class="navbar">
     <div class="nav-brand">
       <span class="logo-icon">⚡</span>
-      <span class="logo-text">AutoMacro <small class="badge">Visual Studio v3.0</small></span>
+      <span class="logo-text">AutoMacro <small class="badge">Studio v4.0</small></span>
     </div>
 
-    <!-- Mode Selector Header Controls -->
-    <div class="header-controls">
-      <button id="btn-play-sim" class="btn btn-success">
-        <span>▶ Play Simulation</span>
-      </button>
-      <button id="btn-web-run" class="btn btn-accent">
-        <span>🚀 Execute Server API</span>
-      </button>
+    <!-- OS Desktop Mouse Tracker Header Bar -->
+    <div class="header-tracker-bar">
+      <button id="btn-fetch-os-mouse" class="btn btn-secondary">🖥️ Track Real Desktop X,Y</button>
+      <span id="live-mouse-pos" class="mouse-tracker-badge">📍 OS Mouse: X: 0, Y: 0</span>
     </div>
 
-    <!-- Auth Area -->
+    <!-- Header Actions -->
     <div class="nav-actions">
+      <button id="btn-web-run" class="btn btn-accent">🚀 Run On Web Sandbox</button>
       <div id="user-status-area">
         <button id="btn-login-modal" class="btn btn-secondary btn-sm">Sign In</button>
         <button id="btn-register-modal" class="btn btn-primary btn-sm">Get Started</button>
@@ -45,132 +42,58 @@
     </div>
   </header>
 
-  <!-- Main 3-Column Interactive Studio Layout -->
+  <!-- Main 2-Column Studio Layout -->
   <main class="studio-layout">
     
-    <!-- LEFT PANEL: SCRATCH BLOCK PALETTE -->
-    <aside class="panel panel-palette">
-      <div class="panel-title">
-        <h3>🧩 Block Palette</h3>
-        <p class="subtitle">Click or drag blocks to build your script</p>
+    <!-- LEFT COLUMN: SCRATCH PALETTE & CANVAS WORKSPACE -->
+    <section class="panel panel-left">
+      
+      <!-- Palette Chips -->
+      <div class="scratch-toolbox">
+        <span class="toolbox-title">Click to Add Block Step:</span>
+        <div class="block-palette">
+          <button class="palette-block block-mouse" data-type="click">🖱️ Mouse Click (X, Y)</button>
+          <button class="palette-block block-key" data-type="key">⌨️ Press Key / Shortcut</button>
+          <button class="palette-block block-delay" data-type="delay">⏱️ Wait Delay (ms)</button>
+          <button class="palette-block block-vision" data-type="ocr">🔍 OCR Text Recognition</button>
+          <button class="palette-block block-vision" data-type="image">👁️ Screen Image Detect</button>
+        </div>
       </div>
 
-      <div class="palette-category">
-        <span class="category-label">Events & Triggers</span>
-        <button class="palette-block block-event" data-type="start">
-          <span>🚩 On Script Start</span>
-        </button>
-      </div>
-
-      <div class="palette-category">
-        <span class="category-label">Mouse Actions</span>
-        <button class="palette-block block-mouse" data-type="click">
-          <span>🖱️ Mouse Click (X, Y)</span>
-        </button>
-        <button class="palette-block block-mouse" data-type="dblclick">
-          <span>🖱️ Double Click (X, Y)</span>
-        </button>
-      </div>
-
-      <div class="palette-category">
-        <span class="category-label">Keyboard Actions</span>
-        <button class="palette-block block-key" data-type="key">
-          <span>⌨️ Press Key / Shortcut</span>
-        </button>
-      </div>
-
-      <div class="palette-category">
-        <span class="category-label">Control & Timing</span>
-        <button class="palette-block block-delay" data-type="delay">
-          <span>⏱️ Wait Delay (ms)</span>
-        </button>
-      </div>
-
-      <div class="palette-category">
-        <span class="category-label">Vision & AI</span>
-        <button class="palette-block block-vision" data-type="ocr">
-          <span>🔍 OCR Text Recognition</span>
-        </button>
-        <button class="palette-block block-vision" data-type="image">
-          <span>👁️ Screen Image Detect</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- CENTER PANEL: VISUAL SCRATCH CANVAS & CHAIN WORKSPACE -->
-    <section class="panel panel-workspace">
+      <!-- Scratch Block Chain Workspace -->
       <div class="workspace-top-bar">
         <div class="workspace-info">
-          <h3>Visual Block Chain Canvas</h3>
+          <h3>Visual Block Chain Workspace</h3>
           <span id="chain-step-count" class="badge-count">0 Steps</span>
         </div>
         <button id="btn-clear-chain" class="btn-text">Clear Chain</button>
       </div>
 
-      <!-- Scratch Block Canvas Container -->
       <div id="scratch-canvas" class="scratch-canvas">
-        <div class="scratch-block block-hat">
-          <span class="block-icon">🚩</span>
-          <span class="block-text">When Script Starts</span>
-        </div>
-
+        <div class="block-hat">🚩 When Script Starts</div>
         <div id="block-chain-list" class="block-chain-list">
           <div class="empty-canvas-prompt">
             <span class="prompt-icon">🧩</span>
             <p>Your workspace is empty.</p>
-            <small>Click blocks on the left or click directly on the Interactive Screen Simulator on the right!</small>
+            <small>Click blocks above or use "Track Real Desktop X,Y" to capture coordinates!</small>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- RIGHT PANEL: INTERACTIVE SCREEN SIMULATOR & GENERATOR PREVIEW -->
-    <aside class="panel panel-simulator">
+    <!-- RIGHT COLUMN: CODE PREVIEW, LOGS, VISION LAB & ANALYTICS -->
+    <aside class="panel panel-right">
       
-      <!-- Tab Controls for Right Panel -->
+      <!-- Tab Controls -->
       <div class="sim-tabs">
-        <button class="sim-tab active" data-tab="tab-screen">🖥️ Screen Simulator</button>
-        <button class="sim-tab" data-tab="tab-code">💻 Generated Code</button>
-        <button class="sim-tab" data-tab="tab-logs">🖥️ Live Logs</button>
+        <button class="sim-tab active" data-tab="tab-code">💻 Generated Code</button>
+        <button class="sim-tab" data-tab="tab-logs">🖥️ Live Sandbox Logs</button>
+        <button class="sim-tab" data-tab="tab-vision">👁️ Vision & OCR Lab</button>
+        <button class="sim-tab" data-tab="tab-analytics">📊 Performance Analytics</button>
       </div>
 
-      <!-- TAB 1: INTERACTIVE SCREEN SIMULATOR -->
-      <div id="tab-screen" class="sim-tab-content active">
-        <div class="sim-header">
-          <span class="sim-status-badge">Target Screen Simulation</span>
-          <button id="btn-fetch-os-mouse" class="btn btn-secondary btn-sm">🖥️ Capture Real Desktop X,Y</button>
-          <span id="live-mouse-pos" class="mouse-tracker-badge">📍 Mouse: X: 0, Y: 0</span>
-        </div>
-
-        <!-- Virtual Interactive Screen Canvas -->
-        <div id="virtual-screen" class="virtual-screen">
-          
-          <!-- Floating Mouse HUD Badge following cursor -->
-          <div id="mouse-hud" class="mouse-hud-tooltip hidden">X: 0, Y: 0</div>
-
-          <div class="virtual-app-window">
-            <div class="app-window-header">
-              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-              <span class="window-title">Demo Desktop App Sandbox</span>
-            </div>
-            <div class="app-window-body">
-              <button class="demo-btn" id="demo-btn-login">Login Button (Click Me)</button>
-              <div class="demo-input-box">
-                <span>Username Input Field</span>
-              </div>
-              <div class="demo-card">
-                <span>OCR Text: "SYSTEM_READY"</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Animated Simulated Mouse Cursor -->
-          <div id="sim-cursor" class="sim-cursor hidden">🎯</div>
-        </div>
-      </div>
-
-      <!-- TAB 2: GENERATED CODE PREVIEW -->
-      <div id="tab-code" class="sim-tab-content hidden">
+      <!-- TAB 1: GENERATED CODE PREVIEW -->
+      <div id="tab-code" class="sim-tab-content active">
         <div class="code-header-bar">
           <select id="select-target-lang" class="select-input">
             <option value="python">🐍 Python (PyAutoGUI)</option>
@@ -179,17 +102,50 @@
           </select>
           <button id="btn-copy-code" class="btn-icon">📋 Copy Code</button>
         </div>
-        <pre><code id="code-output"># Code preview will generate automatically...</code></pre>
+        <pre><code id="code-output"># Script preview will generate automatically when blocks are added...</code></pre>
         <div class="export-download-row">
           <input type="text" id="input-filename" class="text-input" value="macro_automation_script">
-          <button id="btn-download" class="btn btn-primary btn-sm">⬇️ Download File</button>
+          <button id="btn-download" class="btn btn-primary">⬇️ Download File</button>
         </div>
       </div>
 
-      <!-- TAB 3: LIVE LOGS CONSOLE -->
+      <!-- TAB 2: LIVE LOGS CONSOLE -->
       <div id="tab-logs" class="sim-tab-content hidden">
         <div class="log-console-box">
-          <pre id="execution-logs" class="console-body">Logs will stream here upon executing simulation or server API...</pre>
+          <pre id="execution-logs" class="console-body">Click "Run On Web Sandbox" to stream live execution logs...</pre>
+        </div>
+      </div>
+
+      <!-- TAB 3: VISION & OCR TEST LAB -->
+      <div id="tab-vision" class="sim-tab-content hidden">
+        <div class="vision-card">
+          <h3>Screen Image Detection</h3>
+          <form id="form-vision-match">
+            <div class="form-group"><label>Screen Image</label><input type="file" id="vision-target" required></div>
+            <div class="form-group"><label>Target Template</label><input type="file" id="vision-template" required></div>
+            <button type="submit" class="btn btn-accent btn-block">Detect Coordinates</button>
+          </form>
+          <div id="match-result" class="vision-result-box hidden"></div>
+        </div>
+      </div>
+
+      <!-- TAB 4: PERFORMANCE ANALYTICS -->
+      <div id="tab-analytics" class="sim-tab-content hidden">
+        <div class="analytics-metrics-grid">
+          <div class="metric-card">
+            <span class="metric-title">Efficiency Score</span>
+            <span class="metric-value" id="metric-score">100%</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Avg Step Time</span>
+            <span class="metric-value" id="metric-avg-step">0 ms</span>
+          </div>
+        </div>
+        <div class="analytics-detail-box">
+          <h3>💡 AI Optimization Suggestions</h3>
+          <ul id="analytics-recommendations" class="recommendation-list">
+            <li>Run a script execution to see real-time analytics.</li>
+          </ul>
         </div>
       </div>
 
@@ -209,7 +165,6 @@
           <div class="form-group"><label>Password</label><input type="password" id="login-password" required></div>
           <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </form>
-        <p class="modal-footer-text">Don't have an account? <a href="#" id="link-to-register">Sign up</a></p>
       </div>
       <div id="modal-view-register" class="hidden">
         <h3>Create Account</h3>
@@ -223,6 +178,6 @@
     </div>
   </div>
 
-  <script src="/static/js/app.js?v=3.0"></script>
+  <script src="/static/js/app.js?v=4.0"></script>
 </body>
 </html>
