@@ -132,6 +132,17 @@ body {
   padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(88, 166, 255, 0.3); font-family: 'Fira Code', monospace;
 }
 
+.btn-tracking-active {
+  background: #f85149 !important;
+  color: #ffffff !important;
+  animation: pulseTracking 1s infinite alternate;
+}
+
+@keyframes pulseTracking {
+  from { box-shadow: 0 0 4px #f85149; }
+  to { box-shadow: 0 0 12px #f85149; }
+}
+
 .mouse-hud-tooltip {
   position: absolute; background: rgba(9, 13, 19, 0.9); border: 1px solid var(--accent-blue);
   color: #79c0ff; font-family: 'Fira Code', monospace; font-size: 0.75rem; font-weight: 700;

@@ -98,16 +98,40 @@ function setupVirtualScreenClickCapture() {
     mouseHud.classList.add('hidden');
   });
 
+  let isTrackingOsMouse = false;
+  let trackingInterval = null;
+  let lastCapturedX = 0;
+  let lastCapturedY = 0;
+
   const btnFetchOsMouse = document.getElementById('btn-fetch-os-mouse');
   if (btnFetchOsMouse) {
     btnFetchOsMouse.addEventListener('click', async () => {
-      try {
-        const res = await fetch('/api/v1/vision/desktop-mouse-position');
-        const data = await res.json();
-        alert(`🖥️ Captured Real OS Desktop Mouse Position:\nX: ${data.x}, Y: ${data.y}\n\nAdded click step to workspace!`);
-        addStep({ action_type: 'mouse_click', x: data.x, y: data.y });
-      } catch (err) {
-        alert('Could not fetch desktop position');
+      if (!isTrackingOsMouse) {
+        // Start Continuous Tracking
+        isTrackingOsMouse = true;
+        btnFetchOsMouse.classList.add('btn-tracking-active');
+        btnFetchOsMouse.innerHTML = '🔴 Tracking OS Mouse (Click to Stop & Capture)';
+        
+        trackingInterval = setInterval(async () => {
+          try {
+            const res = await fetch('/api/v1/vision/desktop-mouse-position');
+            const data = await res.json();
+            lastCapturedX = data.x;
+            lastCapturedY = data.y;
+            liveMousePos.textContent = `📍 OS Mouse: X: ${data.x}, Y: ${data.y}`;
+          } catch (e) {}
+        }, 150);
+
+      } else {
+        // Stop Continuous Tracking & Add Step
+        isTrackingOsMouse = false;
+        clearInterval(trackingInterval);
+        trackingInterval = null;
+        btnFetchOsMouse.classList.remove('btn-tracking-active');
+        btnFetchOsMouse.innerHTML = '🖥️ Track Real Desktop X,Y';
+
+        alert(`✅ Locked In OS Mouse Position:\nX: ${lastCapturedX}, Y: ${lastCapturedY}\n\nAdded click step to workspace!`);
+        addStep({ action_type: 'mouse_click', x: lastCapturedX, y: lastCapturedY });
       }
     });
   }
