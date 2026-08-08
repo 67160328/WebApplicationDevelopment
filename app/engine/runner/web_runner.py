@@ -20,12 +20,22 @@ class ScriptRunnerEngine:
         for idx, step in enumerate(steps, start=1):
             step_start = time.time()
             if step.action_type == ActionType.MOUSE_CLICK:
-                logs.append(f"Step {idx}: [MOUSE_CLICK] Simulated click at coordinate X:{step.x}, Y:{step.y}")
+                try:
+                    import pyautogui
+                    pyautogui.click(step.x, step.y)
+                    logs.append(f"Step {idx}: [MOUSE_CLICK] Executed real mouse click at X:{step.x}, Y:{step.y}")
+                except Exception as e:
+                    logs.append(f"Step {idx}: [MOUSE_CLICK] Simulated click at coordinate X:{step.x}, Y:{step.y} (Sandbox Mode)")
             elif step.action_type == ActionType.KEY_BINDING:
-                logs.append(f"Step {idx}: [KEY_BINDING] Simulated keypress: '{step.key}'")
+                try:
+                    import pyautogui
+                    pyautogui.press(step.key)
+                    logs.append(f"Step {idx}: [KEY_BINDING] Executed keypress: '{step.key}'")
+                except Exception:
+                    logs.append(f"Step {idx}: [KEY_BINDING] Simulated keypress: '{step.key}'")
             elif step.action_type == ActionType.DELAY:
                 dur = (step.duration_ms or 0) / 1000.0
-                time.sleep(min(dur, 0.5))  # Sandbox cap for fast execution feedback
+                time.sleep(dur)
                 logs.append(f"Step {idx}: [WAIT_DELAY] Waited {step.duration_ms} ms")
             
             step_elapsed = round((time.time() - step_start) * 1000, 2)
