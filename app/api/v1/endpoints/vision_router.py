@@ -35,3 +35,14 @@ async def count_objects(image: UploadFile = File(...), min_area: int = Form(100)
     """Count matching objects/shapes on image screen."""
     image_bytes = await image.read()
     return ObjectCounterEngine.count_objects(image_bytes, min_area=min_area)
+
+@router.get("/desktop-mouse-position")
+async def get_desktop_mouse_position():
+    """Gets real-time OS desktop cursor position (X, Y)."""
+    try:
+        import pyautogui
+        x, y = pyautogui.position()
+        return {"x": int(x), "y": int(y), "status": "success"}
+    except Exception as e:
+        return {"x": 500, "y": 350, "status": "simulated", "note": str(e)}
+

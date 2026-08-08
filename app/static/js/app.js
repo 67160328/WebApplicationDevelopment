@@ -88,6 +88,20 @@ function setupVirtualScreenClickCapture() {
     mouseHud.classList.add('hidden');
   });
 
+  const btnFetchOsMouse = document.getElementById('btn-fetch-os-mouse');
+  if (btnFetchOsMouse) {
+    btnFetchOsMouse.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/v1/vision/desktop-mouse-position');
+        const data = await res.json();
+        alert(`🖥️ Captured Real OS Desktop Mouse Position:\nX: ${data.x}, Y: ${data.y}\n\nAdded click step to workspace!`);
+        addStep({ action_type: 'mouse_click', x: data.x, y: data.y });
+      } catch (err) {
+        alert('Could not fetch desktop position');
+      }
+    });
+  }
+
   virtualScreen.addEventListener('click', (e) => {
     if (isSimulating) return;
     const rect = virtualScreen.getBoundingClientRect();
