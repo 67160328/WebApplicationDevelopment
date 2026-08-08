@@ -29,19 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Palette Block Adders
 function setupPaletteClickHandlers() {
+  let defaultCounter = 1;
   const blocks = document.querySelectorAll('.palette-block');
   blocks.forEach(block => {
     block.addEventListener('click', () => {
       const type = block.dataset.type;
       if (type === 'click') {
-        const x = prompt('Enter Mouse X Coordinate (px):', '450');
-        const y = prompt('Enter Mouse Y Coordinate (px):', '320');
+        const defaultX = 200 + (defaultCounter * 45) % 400;
+        const defaultY = 150 + (defaultCounter * 35) % 250;
+        defaultCounter++;
+        const x = prompt('Enter Mouse X Coordinate (px):', defaultX.toString());
+        const y = prompt('Enter Mouse Y Coordinate (px):', defaultY.toString());
         if (x !== null && y !== null) {
           addStep({ action_type: 'mouse_click', x: parseInt(x) || 0, y: parseInt(y) || 0 });
         }
       } else if (type === 'dblclick') {
-        const x = prompt('Enter Double Click X Coordinate (px):', '500');
-        const y = prompt('Enter Double Click Y Coordinate (px):', '250');
+        const defaultX = 250 + (defaultCounter * 30) % 350;
+        const defaultY = 180 + (defaultCounter * 25) % 200;
+        defaultCounter++;
+        const x = prompt('Enter Double Click X Coordinate (px):', defaultX.toString());
+        const y = prompt('Enter Double Click Y Coordinate (px):', defaultY.toString());
         if (x !== null && y !== null) {
           addStep({ action_type: 'mouse_click', x: parseInt(x) || 0, y: parseInt(y) || 0 });
         }
@@ -54,7 +61,10 @@ function setupPaletteClickHandlers() {
       } else if (type === 'ocr') {
         addStep({ action_type: 'key_binding', key: 'ocr_read_text' });
       } else if (type === 'image') {
-        addStep({ action_type: 'mouse_click', x: 520, y: 380 });
+        const imgX = 300 + (defaultCounter * 20) % 300;
+        const imgY = 200 + (defaultCounter * 15) % 200;
+        defaultCounter++;
+        addStep({ action_type: 'mouse_click', x: imgX, y: imgY });
       }
     });
   });
@@ -104,6 +114,9 @@ function setupVirtualScreenClickCapture() {
 
   virtualScreen.addEventListener('click', (e) => {
     if (isSimulating) return;
+    // Stop propagation if clicking on header controls
+    if (e.target.closest('.sim-header') || e.target.closest('#btn-fetch-os-mouse')) return;
+
     const rect = virtualScreen.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
     const y = Math.round(e.clientY - rect.top);
@@ -111,8 +124,8 @@ function setupVirtualScreenClickCapture() {
     // Show pulse effect at click location
     showClickPulse(x, y);
 
-    // Add step automatically
-    addStep({ action_type: 'mouse_click', x, y });
+    // Add step automatically with precise unique dynamic coordinates
+    addStep({ action_type: 'mouse_click', x: x, y: y });
   });
 }
 
