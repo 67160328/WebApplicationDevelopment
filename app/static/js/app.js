@@ -37,14 +37,8 @@ function setupPaletteClickHandlers() {
     block.addEventListener('click', () => {
       const type = block.dataset.type;
       if (type === 'click') {
-        const defaultX = 200 + (defaultCounter * 45) % 400;
-        const defaultY = 150 + (defaultCounter * 35) % 250;
-        defaultCounter++;
-        const x = prompt('Enter Mouse X Coordinate (px):', defaultX.toString());
-        const y = prompt('Enter Mouse Y Coordinate (px):', defaultY.toString());
-        if (x !== null && y !== null) {
-          addStep({ action_type: 'mouse_click', x: parseInt(x) || 0, y: parseInt(y) || 0 });
-        }
+        // Trigger Interactive Screen Inspector to pick exact click position visually
+        triggerScreenInspectorPicker();
       } else if (type === 'key') {
         const key = prompt('Enter Key / Shortcut (e.g. enter, space, ctrl+c):', 'enter');
         if (key) addStep({ action_type: 'key_binding', key: key.trim() });
@@ -81,7 +75,9 @@ function setupScreenShareInspector() {
   let mediaStream = null;
   let animId = null;
 
-  btnStartShare.addEventListener('click', async () => {
+  btnStartShare.addEventListener('click', triggerScreenInspectorPicker);
+
+  window.triggerScreenInspectorPicker = async function() {
     try {
       mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: "always" },
@@ -107,7 +103,7 @@ function setupScreenShareInspector() {
     } catch (err) {
       alert('Screen sharing cancelled or permission denied.');
     }
-  });
+  };
 
   function stopInspector() {
     if (animId) cancelAnimationFrame(animId);
