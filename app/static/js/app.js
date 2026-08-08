@@ -4,6 +4,7 @@ let currentToken = localStorage.getItem('auto_macro_jwt') || null;
 let currentUser = null;
 let isTrackingOsMouse = false;
 let trackingInterval = null;
+let windowMouseMoveHandler = null;
 let lastCapturedX = 0;
 let lastCapturedY = 0;
 
@@ -68,12 +69,8 @@ function setupPaletteClickHandlers() {
   });
 }
 
-  let isTrackingOsMouse = false;
-  let trackingInterval = null;
-  let windowMouseMoveHandler = null;
-  let lastCapturedX = 0;
-  let lastCapturedY = 0;
-
+// OS Desktop Mouse Tracking Toggle (Start / Stop Switch)
+function setupOsMouseTrackingToggle() {
   const btnFetchOsMouse = document.getElementById('btn-fetch-os-mouse');
   if (btnFetchOsMouse) {
     btnFetchOsMouse.addEventListener('click', async () => {
@@ -87,7 +84,9 @@ function setupPaletteClickHandlers() {
         windowMouseMoveHandler = (e) => {
           lastCapturedX = e.screenX || e.clientX;
           lastCapturedY = e.screenY || e.clientY;
-          liveMousePos.textContent = `📍 Mouse: X: ${lastCapturedX}, Y: ${lastCapturedY}`;
+          if (liveMousePos) {
+            liveMousePos.textContent = `📍 Mouse: X: ${lastCapturedX}, Y: ${lastCapturedY}`;
+          }
         };
         window.addEventListener('mousemove', windowMouseMoveHandler);
         
@@ -96,7 +95,7 @@ function setupPaletteClickHandlers() {
           try {
             const res = await fetch('/api/v1/vision/desktop-mouse-position');
             const data = await res.json();
-            if (data.status === "success") {
+            if (data.status === "success" && liveMousePos) {
               lastCapturedX = data.x;
               lastCapturedY = data.y;
               liveMousePos.textContent = `📍 OS Mouse: X: ${data.x}, Y: ${data.y}`;
@@ -120,6 +119,7 @@ function setupPaletteClickHandlers() {
       }
     });
   }
+}
 
 function addStep(stepObj) {
   steps.push(stepObj);
