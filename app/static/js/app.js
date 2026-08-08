@@ -38,7 +38,9 @@ function setupPaletteClickHandlers() {
       const type = block.dataset.type;
       if (type === 'click') {
         // Trigger Interactive Screen Inspector to pick exact click position visually
-        triggerScreenInspectorPicker();
+        if (window.triggerScreenInspectorPicker) {
+          window.triggerScreenInspectorPicker();
+        }
       } else if (type === 'key') {
         const key = prompt('Enter Key / Shortcut (e.g. enter, space, ctrl+c):', 'enter');
         if (key) addStep({ action_type: 'key_binding', key: key.trim() });
@@ -75,8 +77,6 @@ function setupScreenShareInspector() {
   let mediaStream = null;
   let animId = null;
 
-  btnStartShare.addEventListener('click', triggerScreenInspectorPicker);
-
   window.triggerScreenInspectorPicker = async function() {
     try {
       mediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -104,6 +104,10 @@ function setupScreenShareInspector() {
       alert('Screen sharing cancelled or permission denied.');
     }
   };
+
+  if (btnStartShare) {
+    btnStartShare.addEventListener('click', window.triggerScreenInspectorPicker);
+  }
 
   function stopInspector() {
     if (animId) cancelAnimationFrame(animId);
