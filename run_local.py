@@ -8,7 +8,7 @@ import subprocess
 
 def main():
     print("==================================================")
-    print(" 🚀 AUTOMACRO - REAL WINDOWS MOUSE CLICK ENGINE")
+    print(" [LAUNCH] AUTOMACRO - REAL WINDOWS MOUSE CLICK ENGINE")
     print("==================================================")
     
     # 1. Stop Docker container to free up port 8090
@@ -30,7 +30,7 @@ def main():
 
     # 3. Launch Uvicorn Server directly on Host Windows
     print("\n[3/3] Starting Local API Server with Real Mouse Control...")
-    print("👉 Open your browser at: http://localhost:8090/\n")
+    print("Open your browser at: http://localhost:8090/\n")
     
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)

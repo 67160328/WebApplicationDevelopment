@@ -13,3 +13,8 @@ class AutomationStep(BaseModel):
     y: Optional[int] = Field(None, description="Y coordinate for mouse click")
     key: Optional[str] = Field(None, description="Key identifier for keypress (e.g., 'a', 'enter', 'ctrl+c')")
     duration_ms: Optional[int] = Field(None, description="Delay duration in milliseconds")
+    
+    # Advanced mouse click fields
+    click_count: Optional[int] = Field(1, description="Number of clicks to perform")
+    click_interval: Optional[str] = Field("0.0", description="Seconds or range (e.g. 0.5-5) to wait between clicks")
+    delay_after: Optional[str] = Field("0.0", description="Seconds or range (e.g. 0.5-5) to wait after click action completes")
