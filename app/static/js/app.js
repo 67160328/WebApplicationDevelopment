@@ -211,6 +211,17 @@ function editStep(idx) {
   renderBlockChain();
 }
 
+window.updateStepValue = function(idx, key, val) {
+  if (steps[idx]) {
+    if (key === 'x' || key === 'y' || key === 'duration_ms' || key === 'click_count') {
+      steps[idx][key] = parseInt(val) || 0;
+    } else {
+      steps[idx][key] = val;
+    }
+    triggerLivePreview();
+  }
+};
+
 function renderBlockChain() {
   chainStepCount.textContent = `${steps.length} Steps`;
   if (steps.length === 0) {
@@ -228,108 +239,52 @@ function renderBlockChain() {
     const div = document.createElement('div');
     div.className = `chain-block type-${s.action_type === 'mouse_click' ? 'click' : s.action_type === 'key_binding' ? 'key' : 'delay'}`;
     
-    // Style block container slightly differently if editing inline
-    if (idx === activeEditingIndex) {
-      div.style.flexDirection = 'column';
-      div.style.alignItems = 'stretch';
-      div.style.gap = '10px';
-      div.style.padding = '1rem';
-      div.style.background = '#1a2332';
-      div.style.borderLeftWidth = '8px';
-    }
-
-    if (idx === activeEditingIndex) {
-      // Render Inline Form
-      if (s.action_type === 'mouse_click') {
-        div.innerHTML = `
-          <div style="font-weight: 700; font-size: 0.95rem; color: #58a6ff; margin-bottom: 4px;">🖱️ Configure Mouse Click (Step ${idx + 1})</div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-            <div style="flex: 1; min-width: 80px; display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 0.72rem; color: var(--text-muted);">X Coord (px)</span>
-              <input type="number" id="inline-click-x-${idx}" value="${s.x || 0}" style="width:100%; padding: 4px 8px;">
-            </div>
-            <div style="flex: 1; min-width: 80px; display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 0.72rem; color: var(--text-muted);">Y Coord (px)</span>
-              <input type="number" id="inline-click-y-${idx}" value="${s.y || 0}" style="width:100%; padding: 4px 8px;">
-            </div>
-            <div style="flex: 1.2; min-width: 120px; display: flex; align-items: flex-end;">
-              <button class="btn btn-accent btn-sm" onclick="startInlinePicker(${idx})" style="width: 100%; height: 28px; justify-content: center;">📺 Screen Pick</button>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-            <div style="flex: 1; min-width: 100px; display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 0.72rem; color: var(--text-muted);">Click Count (จำนวนครั้ง)</span>
-              <input type="number" id="inline-click-count-${idx}" min="1" value="${s.click_count || 1}" style="width:100%; padding: 4px 8px;">
-            </div>
-            <div style="flex: 1.2; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 0.72rem; color: var(--text-muted);">Interval (เวลารอเมื่อกดหลายครั้ง) (s)</span>
-              <input type="text" id="inline-click-interval-${idx}" value="${s.click_interval || '0.0'}" placeholder="e.g. 0.5 or 0.5-5" style="width:100%; padding: 4px 8px;">
-            </div>
-            <div style="flex: 1.2; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 0.72rem; color: var(--text-muted);">Delay After (ดีเลย์เสร็จงาน) (s)</span>
-              <input type="text" id="inline-click-delay-after-${idx}" value="${s.delay_after || '0.0'}" placeholder="e.g. 1.0 or 0.5-5" style="width:100%; padding: 4px 8px;">
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">
-            <button class="btn btn-secondary btn-sm" onclick="cancelInlineEdit()">Cancel</button>
-            <button class="btn btn-primary btn-sm" onclick="saveInlineEdit(${idx})">Save Changes</button>
+    let htmlContent = '';
+    if (s.action_type === 'mouse_click') {
+      htmlContent = `
+        <div class="scratch-input-label">
+          🖱️ คลิกเมาส์ที่ X: 
+          <input type="number" class="scratch-input" value="${s.x || 0}" oninput="updateStepValue(${idx}, 'x', this.value)"> 
+          Y: 
+          <input type="number" class="scratch-input" value="${s.y || 0}" oninput="updateStepValue(${idx}, 'y', this.value)">
+          <button class="btn-picker-icon" title="ดึงพิกัดจากหน้าจอ" onclick="startInlinePicker(${idx})">🎯</button>
+          ครั้ง: 
+          <input type="number" class="scratch-input" style="width: 45px !important;" value="${s.click_count || 1}" oninput="updateStepValue(${idx}, 'click_count', this.value)">
+          หน่วงหลังทำ: 
+          <input type="text" class="scratch-input" style="width: 50px !important;" value="${s.delay_after || '0.0'}" oninput="updateStepValue(${idx}, 'delay_after', this.value)"> ส.
+        </div>
+      `;
+    } else if (s.action_type === 'key_binding') {
+      const isOcr = s.key === 'ocr_read_text';
+      if (isOcr) {
+        htmlContent = `
+          <div class="scratch-input-label">
+            🔍 Perform OCR: สแกนดึงข้อความจากภาพหน้าจอ
           </div>
         `;
-      } else if (s.action_type === 'key_binding') {
-        div.innerHTML = `
-          <div style="font-weight: 700; font-size: 0.95rem; color: #bc8cff; margin-bottom: 4px;">⌨️ Configure Keypress (Step ${idx + 1})</div>
-          <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
-            <span style="font-size: 0.72rem; color: var(--text-muted);">Key Name or Shortcut (e.g. enter, space, ctrl+c)</span>
-            <input type="text" id="inline-key-${idx}" value="${s.key || ''}" style="width:100%; padding: 4px 8px;">
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">
-            <button class="btn btn-secondary btn-sm" onclick="cancelInlineEdit()">Cancel</button>
-            <button class="btn btn-primary btn-sm" onclick="saveInlineEdit(${idx})">Save Changes</button>
-          </div>
-        `;
-      } else if (s.action_type === 'delay') {
-        div.innerHTML = `
-          <div style="font-weight: 700; font-size: 0.95rem; color: #d29922; margin-bottom: 4px;">⏱️ Configure Wait Delay (Step ${idx + 1})</div>
-          <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
-            <span style="font-size: 0.72rem; color: var(--text-muted);">Wait Duration (milliseconds)</span>
-            <input type="number" id="inline-duration-ms-${idx}" value="${s.duration_ms || 1000}" style="width:100%; padding: 4px 8px;">
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">
-            <button class="btn btn-secondary btn-sm" onclick="cancelInlineEdit()">Cancel</button>
-            <button class="btn btn-primary btn-sm" onclick="saveInlineEdit(${idx})">Save Changes</button>
+      } else {
+        htmlContent = `
+          <div class="scratch-input-label">
+            ⌨️ กดปุ่มคีย์บอร์ด / พิมพ์คำว่า: 
+            <input type="text" class="scratch-input scratch-input-wide" value="${s.key || ''}" oninput="updateStepValue(${idx}, 'key', this.value)">
           </div>
         `;
       }
-    } else {
-      // Render standard preview mode
-      let label = '';
-      if (s.action_type === 'mouse_click') {
-        label = `🖱️ Mouse Click at X: ${s.x}, Y: ${s.y}`;
-        let details = [];
-        if (s.click_count && s.click_count > 1) {
-          details.push(`Count: ${s.click_count}`);
-          if (s.click_interval && s.click_interval !== "0.0" && s.click_interval !== "0") {
-            details.push(`Interval: ${s.click_interval}s`);
-          }
-        }
-        if (s.delay_after && s.delay_after !== "0.0" && s.delay_after !== "0") {
-          details.push(`Delay after: ${s.delay_after}s`);
-        }
-        if (details.length > 0) {
-          label += ` (${details.join(', ')})`;
-        }
-      }
-      else if (s.action_type === 'key_binding') label = `⌨️ Press Key: "${s.key}"`;
-      else if (s.action_type === 'delay') label = `⏱️ Wait ${s.duration_ms} ms (${(s.duration_ms/1000).toFixed(1)}s)`;
-
-      div.innerHTML = `
-        <span>Step ${idx + 1}: ${label}</span>
-        <div class="chain-block-actions">
-          <button class="btn-icon-step" title="Edit Step" onclick="editStep(${idx})">✏️ Edit</button>
-          <button class="btn-icon-step danger" title="Delete Step" onclick="removeStep(${idx})">✕</button>
+    } else if (s.action_type === 'delay') {
+      htmlContent = `
+        <div class="scratch-input-label">
+          ⏱️ รอเวลาหน่วง: 
+          <input type="number" class="scratch-input scratch-input-wide" value="${s.duration_ms || 1000}" oninput="updateStepValue(${idx}, 'duration_ms', this.value)"> ms
         </div>
       `;
     }
+
+    div.innerHTML = `
+      ${htmlContent}
+      <div class="chain-block-actions">
+        <button class="btn-icon-step danger" title="Delete Step" onclick="removeStep(${idx})">✕</button>
+      </div>
+    `;
     blockChainList.appendChild(div);
   });
 }
